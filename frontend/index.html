@@ -1,0 +1,1978 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CertGuard AI - Sistema de Gestão de Certificados</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="certificates.js"></script>
+    <style>
+        .gradient-bg {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+        .card-hover {
+            transition: all 0.3s ease;
+        }
+        .card-hover:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+        }
+        .sidebar-item {
+            transition: all 0.2s ease;
+        }
+        .sidebar-item:hover {
+            background-color: #f8fafc;
+            border-left: 4px solid #3b82f6;
+        }
+        .sidebar-item.active {
+            background-color: #eff6ff;
+            border-left: 4px solid #3b82f6;
+            color: #1d4ed8;
+        }
+        .loading {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #3498db;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        .fade-in {
+            animation: fadeIn 0.5s ease-in;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+    </style>
+</head>
+<body class="bg-gray-50">
+    <!-- Login Screen -->
+    <div id="loginScreen" class="min-h-screen gradient-bg flex items-center justify-center p-4">
+        <div class="w-full max-w-md">
+            <!-- Logo e Header -->
+            <div class="text-center mb-8">
+                <div class="flex justify-center mb-4">
+                    <div class="p-4 bg-white rounded-2xl shadow-lg">
+                        <i data-lucide="shield" class="h-12 w-12 text-blue-600"></i>
+                    </div>
+                </div>
+                <h1 class="text-4xl font-bold text-white mb-2">CertGuard AI</h1>
+                <p class="text-blue-100 text-lg">Sistema Avançado de Certificados</p>
+            </div>
+
+            <!-- Card de Login -->
+            <div class="bg-white rounded-2xl shadow-2xl p-8">
+                <div class="text-center mb-6">
+                    <h2 class="text-2xl font-bold text-gray-800">Acesso ao Sistema</h2>
+                    <p class="text-gray-600 mt-2">Entre com suas credenciais para continuar</p>
+                </div>
+
+                <!-- Alerta de erro -->
+                <div id="loginError" class="hidden mb-4 p-4 bg-red-50 border border-red-200 rounded-lg">
+                    <div class="flex items-center">
+                        <i data-lucide="alert-circle" class="h-4 w-4 text-red-600 mr-2"></i>
+                        <span class="text-red-700 text-sm">Credenciais inválidas. Verifique seu usuário e senha.</span>
+                    </div>
+                </div>
+
+                <form id="loginForm" class="space-y-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Usuário</label>
+                        <div class="relative">
+                            <i data-lucide="user" class="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400"></i>
+                            <input 
+                                type="text" 
+                                id="username"
+                                placeholder="Digite seu usuário"
+                                class="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                required
+                            >
+                        </div>
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Senha</label>
+                        <div class="relative">
+                            <i data-lucide="lock" class="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400"></i>
+                            <input 
+                                type="password" 
+                                id="password"
+                                placeholder="Digite sua senha"
+                                class="w-full pl-10 pr-10 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                required
+                            >
+                            <button type="button" id="togglePassword" class="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600">
+                                <i data-lucide="eye" class="h-4 w-4"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                    <button 
+                        type="submit" 
+                        id="loginBtn"
+                        class="w-full py-3 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg transition-colors duration-200 flex items-center justify-center"
+                    >
+                        <span id="loginBtnText">Entrar no Sistema</span>
+                        <div id="loginLoading" class="loading ml-2 hidden"></div>
+                    </button>
+                </form>
+
+                <!-- Credenciais de Teste -->
+                <div class="mt-6 p-4 bg-gray-50 rounded-lg">
+                    <h4 class="text-sm font-medium text-gray-700 mb-3">Credenciais de Teste:</h4>
+                    <div class="space-y-2 text-sm">
+                        <div class="flex justify-between items-center p-2 bg-white rounded border">
+                            <span class="font-medium text-gray-600">Admin:</span>
+                            <span class="text-gray-800">admin / admin123</span>
+                        </div>
+                        <div class="flex justify-between items-center p-2 bg-white rounded border">
+                            <span class="font-medium text-gray-600">Super Admin:</span>
+                            <span class="text-gray-800">superadmin / super123</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="text-center mt-6">
+                    <p class="text-xs text-gray-500">Sistema protegido por autenticação multifator</p>
+                </div>
+            </div>
+
+            <div class="text-center mt-8">
+                <p class="text-sm text-blue-100">CertGuard AI © 2025 - Todos os direitos reservados</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Application -->
+    <div id="mainApp" class="hidden min-h-screen bg-gray-50">
+        <!-- Sidebar -->
+        <div id="sidebar" class="fixed inset-y-0 left-0 z-50 w-64 bg-white shadow-xl transform -translate-x-full transition-transform duration-300 ease-in-out lg:translate-x-0 lg:static lg:inset-0">
+            <div class="flex items-center justify-between h-16 px-6 border-b border-gray-200">
+                <div class="flex items-center space-x-3">
+                    <div class="p-2 bg-blue-600 rounded-lg">
+                        <i data-lucide="shield" class="h-6 w-6 text-white"></i>
+                    </div>
+                    <div>
+                        <h1 class="text-xl font-bold text-gray-800">CertGuard AI</h1>
+                        <p class="text-xs text-gray-500">Sistema Avançado</p>
+                    </div>
+                </div>
+                <button id="closeSidebar" class="lg:hidden p-1 rounded-md text-gray-400 hover:text-gray-600">
+                    <i data-lucide="x" class="h-5 w-5"></i>
+                </button>
+            </div>
+
+            <!-- User Info -->
+            <div class="p-4 border-b border-gray-200">
+                <div class="flex items-center space-x-3">
+                    <div class="w-10 h-10 bg-blue-500 rounded-full flex items-center justify-center">
+                        <i data-lucide="user" class="h-5 w-5 text-white"></i>
+                    </div>
+                    <div class="flex-1 min-w-0">
+                        <p class="text-sm font-medium text-gray-800">Bem-vindo,</p>
+                        <p id="userName" class="text-sm text-gray-600">Administrador</p>
+                        <span id="userRole" class="inline-block mt-1 px-2 py-1 text-xs bg-blue-100 text-blue-800 rounded">Admin</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Navigation -->
+            <nav class="flex-1 px-4 py-6 space-y-2">
+                <a href="#" class="sidebar-item active flex items-center px-3 py-3 text-sm font-medium rounded-lg" data-page="dashboard">
+                    <i data-lucide="layout-dashboard" class="mr-3 h-5 w-5"></i>
+                    Dashboard
+                </a>
+                <a href="#" class="sidebar-item flex items-center px-3 py-3 text-sm font-medium rounded-lg text-gray-600" data-page="organizations">
+                    <i data-lucide="building-2" class="mr-3 h-5 w-5"></i>
+                    Organizações
+                </a>
+                <a href="#" class="sidebar-item flex items-center px-3 py-3 text-sm font-medium rounded-lg text-gray-600" data-page="users">
+                    <i data-lucide="users" class="mr-3 h-5 w-5"></i>
+                    Usuários
+                </a>
+                <a href="#" class="sidebar-item flex items-center px-3 py-3 text-sm font-medium rounded-lg text-gray-600" data-page="certificates">
+                    <i data-lucide="award" class="mr-3 h-5 w-5"></i>
+                    Certificados
+                </a>
+                <a href="#" class="sidebar-item flex items-center px-3 py-3 text-sm font-medium rounded-lg text-gray-600" data-page="tribunals">
+                    <i data-lucide="globe" class="mr-3 h-5 w-5"></i>
+                    Sites/Tribunais
+                </a>
+                <a href="#" class="sidebar-item flex items-center px-3 py-3 text-sm font-medium rounded-lg text-gray-600" data-page="permissions">
+                    <i data-lucide="user-check" class="mr-3 h-5 w-5"></i>
+                    Atribuições
+                </a>
+                <a href="#" class="sidebar-item flex items-center px-3 py-3 text-sm font-medium rounded-lg text-gray-600" data-page="security">
+                    <i data-lucide="lock" class="mr-3 h-5 w-5"></i>
+                    Segurança
+                </a>
+                <a href="#" class="sidebar-item flex items-center px-3 py-3 text-sm font-medium rounded-lg text-gray-600" data-page="audit">
+                    <i data-lucide="file-search" class="mr-3 h-5 w-5"></i>
+                    Auditoria
+                </a>
+            </nav>
+
+            <!-- Logout -->
+            <div class="p-4 border-t border-gray-200">
+                <button id="logoutBtn" class="w-full flex items-center justify-start px-3 py-2 text-sm font-medium text-gray-600 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors">
+                    <i data-lucide="log-out" class="mr-3 h-4 w-4"></i>
+                    Sair do Sistema
+                </button>
+            </div>
+        </div>
+
+        <!-- Main Content -->
+        <div class="lg:pl-64">
+            <!-- Top Header -->
+            <header class="bg-white shadow-sm border-b border-gray-200">
+                <div class="flex items-center justify-between h-16 px-6">
+                    <div class="flex items-center space-x-4">
+                        <button id="openSidebar" class="lg:hidden p-2 rounded-md text-gray-400 hover:text-gray-600 hover:bg-gray-100">
+                            <i data-lucide="menu" class="h-5 w-5"></i>
+                        </button>
+                        
+                        <!-- Search -->
+                        <div class="relative hidden md:block">
+                            <i data-lucide="search" class="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400"></i>
+                            <input
+                                type="text"
+                                placeholder="Buscar no sistema..."
+                                class="pl-10 w-80 py-2 bg-gray-50 border border-gray-200 rounded-lg focus:bg-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                            >
+                        </div>
+                    </div>
+
+                    <div class="flex items-center space-x-4">
+                        <!-- Notifications -->
+                        <button class="relative p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg">
+                            <i data-lucide="bell" class="h-5 w-5"></i>
+                            <span class="absolute -top-1 -right-1 h-5 w-5 bg-red-500 text-white text-xs rounded-full flex items-center justify-center">3</span>
+                        </button>
+
+                        <!-- Settings -->
+                        <button class="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg">
+                            <i data-lucide="settings" class="h-5 w-5"></i>
+                        </button>
+
+                        <!-- User Menu -->
+                        <div class="flex items-center space-x-2 text-sm">
+                            <span class="hidden md:block text-gray-600" id="headerUserName">Administrador</span>
+                            <i data-lucide="chevron-down" class="h-4 w-4 text-gray-400"></i>
+                        </div>
+                    </div>
+                </div>
+            </header>
+
+            <!-- Page Content -->
+            <main class="p-6">
+                <div class="max-w-7xl mx-auto">
+                    <div id="pageContent" class="fade-in">
+                        <!-- Dashboard Content será carregado aqui -->
+                    </div>
+                </div>
+            </main>
+        </div>
+
+        <!-- Mobile Sidebar Overlay -->
+        <div id="sidebarOverlay" class="fixed inset-0 z-40 bg-black bg-opacity-50 lg:hidden hidden"></div>
+    </div>
+
+    <script>
+        // Initialize Lucide icons
+        lucide.createIcons();
+
+        // Application state
+        let currentUser = null;
+        let currentPage = 'dashboard';
+
+        // DOM elements
+        const loginScreen = document.getElementById('loginScreen');
+        const mainApp = document.getElementById('mainApp');
+        const loginForm = document.getElementById('loginForm');
+        const loginError = document.getElementById('loginError');
+        const sidebar = document.getElementById('sidebar');
+        const sidebarOverlay = document.getElementById('sidebarOverlay');
+        const pageContent = document.getElementById('pageContent');
+
+        // Login functionality
+        loginForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const username = document.getElementById('username').value;
+            const password = document.getElementById('password').value;
+            const loginBtn = document.getElementById('loginBtn');
+            const loginBtnText = document.getElementById('loginBtnText');
+            const loginLoading = document.getElementById('loginLoading');
+
+            // Show loading
+            loginBtnText.textContent = 'Entrando...';
+            loginLoading.classList.remove('hidden');
+            loginBtn.disabled = true;
+
+            // Simulate API call
+            await new Promise(resolve => setTimeout(resolve, 1500));
+
+            // Validate credentials
+            if ((username === 'admin' && password === 'admin123') || 
+                (username === 'superadmin' && password === 'super123')) {
+                
+                currentUser = {
+                    username: username,
+                    name: username === 'admin' ? 'Administrador' : 'Super Administrador',
+                    role: username === 'admin' ? 'Admin' : 'Super Admin'
+                };
+
+                // Update UI with user info
+                document.getElementById('userName').textContent = currentUser.name;
+                document.getElementById('userRole').textContent = currentUser.role;
+                document.getElementById('headerUserName').textContent = currentUser.name;
+
+                // Hide login, show main app
+                loginScreen.classList.add('hidden');
+                mainApp.classList.remove('hidden');
+                
+                // Load dashboard
+                loadPage('dashboard');
+                
+            } else {
+                loginError.classList.remove('hidden');
+                setTimeout(() => {
+                    loginError.classList.add('hidden');
+                }, 3000);
+            }
+
+            // Reset button
+            loginBtnText.textContent = 'Entrar no Sistema';
+            loginLoading.classList.add('hidden');
+            loginBtn.disabled = false;
+        });
+
+        // Toggle password visibility
+        document.getElementById('togglePassword').addEventListener('click', () => {
+            const passwordInput = document.getElementById('password');
+            const icon = document.querySelector('#togglePassword i');
+            
+            if (passwordInput.type === 'password') {
+                passwordInput.type = 'text';
+                icon.setAttribute('data-lucide', 'eye-off');
+            } else {
+                passwordInput.type = 'password';
+                icon.setAttribute('data-lucide', 'eye');
+            }
+            lucide.createIcons();
+        });
+
+        // Sidebar functionality
+        document.getElementById('openSidebar').addEventListener('click', () => {
+            sidebar.classList.remove('-translate-x-full');
+            sidebarOverlay.classList.remove('hidden');
+        });
+
+        document.getElementById('closeSidebar').addEventListener('click', () => {
+            sidebar.classList.add('-translate-x-full');
+            sidebarOverlay.classList.add('hidden');
+        });
+
+        sidebarOverlay.addEventListener('click', () => {
+            sidebar.classList.add('-translate-x-full');
+            sidebarOverlay.classList.add('hidden');
+        });
+
+        // Navigation
+        document.querySelectorAll('.sidebar-item').forEach(item => {
+            item.addEventListener('click', (e) => {
+                e.preventDefault();
+                const page = item.getAttribute('data-page');
+                
+                // Update active state
+                document.querySelectorAll('.sidebar-item').forEach(i => i.classList.remove('active'));
+                item.classList.add('active');
+                
+                // Load page
+                loadPage(page);
+                
+                // Close mobile sidebar
+                sidebar.classList.add('-translate-x-full');
+                sidebarOverlay.classList.add('hidden');
+            });
+        });
+
+        // Logout
+        document.getElementById('logoutBtn').addEventListener('click', () => {
+            currentUser = null;
+            mainApp.classList.add('hidden');
+            loginScreen.classList.remove('hidden');
+            document.getElementById('loginForm').reset();
+        });
+
+        // Page loading function
+        function loadPage(page) {
+            currentPage = page;
+            pageContent.classList.remove('fade-in');
+            
+            setTimeout(() => {
+                switch(page) {
+                    case 'dashboard':
+                        loadDashboard();
+                        break;
+                    case 'users':
+                        loadUsers();
+                        break;
+                    case 'organizations':
+                        loadOrganizations();
+                        break;
+                    case 'certificates':
+                        loadCertificates();
+                        break;
+                    case 'tribunals':
+                        loadTribunals();
+                        break;
+                    case 'permissions':
+                        loadPermissions();
+                        break;
+                    case 'security':
+                        loadSecurity();
+                        break;
+                    case 'audit':
+                        loadAudit();
+                        break;
+                    default:
+                        loadDashboard();
+                }
+                pageContent.classList.add('fade-in');
+                lucide.createIcons();
+            }, 100);
+        }
+
+        // Dashboard page
+        function loadDashboard() {
+            pageContent.innerHTML = `
+                <div class="space-y-6">
+                    <!-- Header -->
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <h1 class="text-3xl font-bold text-gray-900">Dashboard do Sistema</h1>
+                            <p class="text-gray-600 mt-1">Visão geral completa do CertGuard AI</p>
+                        </div>
+                        <div class="flex items-center space-x-2">
+                            <button class="px-4 py-2 bg-blue-600 text-white text-sm rounded-lg hover:bg-blue-700">7 dias</button>
+                            <button class="px-4 py-2 bg-gray-200 text-gray-700 text-sm rounded-lg hover:bg-gray-300">30 dias</button>
+                            <button class="px-4 py-2 bg-gray-200 text-gray-700 text-sm rounded-lg hover:bg-gray-300">90 dias</button>
+                        </div>
+                    </div>
+
+                    <!-- Métricas Principais -->
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                        <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6 card-hover">
+                            <div class="flex items-center justify-between">
+                                <div>
+                                    <p class="text-sm font-medium text-gray-600">Organizações Ativas</p>
+                                    <div class="flex items-baseline space-x-2 mt-2">
+                                        <p class="text-3xl font-bold text-gray-900">47</p>
+                                        <div class="flex items-center text-green-600">
+                                            <i data-lucide="arrow-up-right" class="h-4 w-4"></i>
+                                            <span class="text-sm font-medium">12.5%</span>
+                                        </div>
+                                    </div>
+                                    <p class="text-xs text-gray-500 mt-1">47 organizações cadastradas</p>
+                                </div>
+                                <div class="p-3 bg-purple-500 rounded-xl">
+                                    <i data-lucide="building-2" class="w-6 h-6 text-white"></i>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6 card-hover">
+                            <div class="flex items-center justify-between">
+                                <div>
+                                    <p class="text-sm font-medium text-gray-600">Usuários Totais</p>
+                                    <div class="flex items-baseline space-x-2 mt-2">
+                                        <p class="text-3xl font-bold text-gray-900">1,284</p>
+                                        <div class="flex items-center text-green-600">
+                                            <i data-lucide="arrow-up-right" class="h-4 w-4"></i>
+                                            <span class="text-sm font-medium">8.2%</span>
+                                        </div>
+                                    </div>
+                                    <p class="text-xs text-gray-500 mt-1">156 usuários online agora</p>
+                                </div>
+                                <div class="p-3 bg-blue-500 rounded-xl">
+                                    <i data-lucide="users" class="w-6 h-6 text-white"></i>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6 card-hover">
+                            <div class="flex items-center justify-between">
+                                <div>
+                                    <p class="text-sm font-medium text-gray-600">Certificados Gerenciados</p>
+                                    <div class="flex items-baseline space-x-2 mt-2">
+                                        <p class="text-3xl font-bold text-gray-900">892</p>
+                                        <div class="flex items-center text-green-600">
+                                            <i data-lucide="arrow-up-right" class="h-4 w-4"></i>
+                                            <span class="text-sm font-medium">15.2%</span>
+                                        </div>
+                                    </div>
+                                    <p class="text-xs text-gray-500 mt-1">89 expirando em 30 dias</p>
+                                </div>
+                                <div class="p-3 bg-orange-500 rounded-xl">
+                                    <i data-lucide="award" class="w-6 h-6 text-white"></i>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6 card-hover">
+                            <div class="flex items-center justify-between">
+                                <div>
+                                    <p class="text-sm font-medium text-gray-600">Consultas LucIA</p>
+                                    <div class="flex items-baseline space-x-2 mt-2">
+                                        <p class="text-3xl font-bold text-gray-900">15,847</p>
+                                        <div class="flex items-center text-green-600">
+                                            <i data-lucide="arrow-up-right" class="h-4 w-4"></i>
+                                            <span class="text-sm font-medium">23.7%</span>
+                                        </div>
+                                    </div>
+                                    <p class="text-xs text-gray-500 mt-1">Este mês</p>
+                                </div>
+                                <div class="p-3 bg-green-500 rounded-xl">
+                                    <i data-lucide="bot" class="w-6 h-6 text-white"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Gráficos e Status -->
+                    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                        <!-- Crescimento -->
+                        <div class="lg:col-span-2 bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+                            <div class="mb-6">
+                                <h3 class="text-lg font-semibold text-gray-900">Crescimento do Sistema</h3>
+                                <p class="text-gray-600 text-sm">Usuários, certificados e organizações por mês</p>
+                            </div>
+                            <div class="h-64">
+                                <canvas id="growthChart"></canvas>
+                            </div>
+                        </div>
+
+                        <!-- Status do Sistema -->
+                        <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+                            <div class="mb-6">
+                                <h3 class="text-lg font-semibold text-gray-900 flex items-center">
+                                    <i data-lucide="activity" class="w-5 h-5 text-green-600 mr-2"></i>
+                                    Status do Sistema
+                                </h3>
+                            </div>
+                            <div class="space-y-4">
+                                <div class="flex items-center justify-between">
+                                    <span class="text-sm text-gray-600">Uptime</span>
+                                    <div class="flex items-center space-x-2">
+                                        <i data-lucide="check-circle" class="w-4 h-4 text-green-600"></i>
+                                        <span class="font-medium">99.97%</span>
+                                    </div>
+                                </div>
+                                
+                                <div>
+                                    <div class="flex justify-between text-sm mb-1">
+                                        <span class="text-gray-600">CPU</span>
+                                        <span class="font-medium">23.5%</span>
+                                    </div>
+                                    <div class="w-full bg-gray-200 rounded-full h-2">
+                                        <div class="bg-blue-600 h-2 rounded-full" style="width: 23.5%"></div>
+                                    </div>
+                                </div>
+                                
+                                <div>
+                                    <div class="flex justify-between text-sm mb-1">
+                                        <span class="text-gray-600">Memória</span>
+                                        <span class="font-medium">67.2%</span>
+                                    </div>
+                                    <div class="w-full bg-gray-200 rounded-full h-2">
+                                        <div class="bg-green-600 h-2 rounded-full" style="width: 67.2%"></div>
+                                    </div>
+                                </div>
+                                
+                                <div>
+                                    <div class="flex justify-between text-sm mb-1">
+                                        <span class="text-gray-600">Disco</span>
+                                        <span class="font-medium">45.8%</span>
+                                    </div>
+                                    <div class="w-full bg-gray-200 rounded-full h-2">
+                                        <div class="bg-yellow-600 h-2 rounded-full" style="width: 45.8%"></div>
+                                    </div>
+                                </div>
+
+                                <div class="pt-2 text-xs text-gray-500">
+                                    Última atualização: 2 min atrás
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Alertas e Ações -->
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                        <!-- Alertas -->
+                        <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+                            <h3 class="text-lg font-semibold text-gray-900 mb-4 flex items-center">
+                                <i data-lucide="alert-triangle" class="w-5 h-5 text-amber-600 mr-2"></i>
+                                Alertas do Sistema
+                            </h3>
+                            <div class="space-y-3">
+                                <div class="flex items-start space-x-3 p-3 bg-amber-50 rounded-lg border border-amber-200">
+                                    <i data-lucide="alert-triangle" class="w-5 h-5 text-amber-600 mt-0.5"></i>
+                                    <div>
+                                        <p class="font-medium text-amber-800">Certificados Expirando</p>
+                                        <p class="text-sm text-amber-700">89 certificados expiram nos próximos 30 dias</p>
+                                    </div>
+                                </div>
+                                
+                                <div class="flex items-start space-x-3 p-3 bg-blue-50 rounded-lg border border-blue-200">
+                                    <i data-lucide="database" class="w-5 h-5 text-blue-600 mt-0.5"></i>
+                                    <div>
+                                        <p class="font-medium text-blue-800">Backup Agendado</p>
+                                        <p class="text-sm text-blue-700">Próximo backup automático em 2 horas</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Ações Rápidas -->
+                        <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+                            <h3 class="text-lg font-semibold text-gray-900 mb-4 flex items-center">
+                                <i data-lucide="zap" class="w-5 h-5 text-blue-600 mr-2"></i>
+                                Ações Rápidas
+                            </h3>
+                            <div class="space-y-3">
+                                <button class="w-full flex items-center justify-start px-4 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors">
+                                    <i data-lucide="award" class="mr-3 h-4 w-4"></i>
+                                    Adicionar Novo Certificado
+                                </button>
+                                <button class="w-full flex items-center justify-start px-4 py-3 border border-gray-300 hover:bg-gray-50 text-gray-700 rounded-lg transition-colors">
+                                    <i data-lucide="users" class="mr-3 h-4 w-4"></i>
+                                    Gerenciar Usuários
+                                </button>
+                                <button class="w-full flex items-center justify-start px-4 py-3 border border-gray-300 hover:bg-gray-50 text-gray-700 rounded-lg transition-colors">
+                                    <i data-lucide="file-search" class="mr-3 h-4 w-4"></i>
+                                    Relatório de Auditoria
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+
+            // Initialize chart
+            setTimeout(() => {
+                const ctx = document.getElementById('growthChart').getContext('2d');
+                new Chart(ctx, {
+                    type: 'line',
+                    data: {
+                        labels: ['Jan', 'Fev', 'Mar', 'Abr', 'Mai'],
+                        datasets: [{
+                            label: 'Usuários',
+                            data: [850, 920, 1050, 1180, 1284],
+                            borderColor: '#3b82f6',
+                            backgroundColor: 'rgba(59, 130, 246, 0.1)',
+                            tension: 0.4
+                        }, {
+                            label: 'Certificados',
+                            data: [650, 720, 780, 820, 892],
+                            borderColor: '#10b981',
+                            backgroundColor: 'rgba(16, 185, 129, 0.1)',
+                            tension: 0.4
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: {
+                                position: 'top',
+                            }
+                        },
+                        scales: {
+                            y: {
+                                beginAtZero: true
+                            }
+                        }
+                    }
+                });
+            }, 200);
+        }
+
+        // Users page
+        function loadUsers() {
+            pageContent.innerHTML = `
+                <div class="space-y-6">
+                    <!-- Header -->
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <h1 class="text-3xl font-bold text-gray-900">Gerenciamento de Usuários</h1>
+                            <p class="text-gray-600 mt-1">Gerencie usuários, permissões e acessos do sistema</p>
+                        </div>
+                        <button class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg flex items-center">
+                            <i data-lucide="plus" class="w-4 h-4 mr-2"></i>
+                            Novo Usuário
+                        </button>
+                    </div>
+
+                    <!-- Filters -->
+                    <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-4">
+                        <div class="flex flex-col md:flex-row md:items-center md:justify-between space-y-4 md:space-y-0">
+                            <div class="flex items-center space-x-4">
+                                <div class="relative">
+                                    <i data-lucide="search" class="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400"></i>
+                                    <input
+                                        type="text"
+                                        placeholder="Buscar por nome, email ou usuário..."
+                                        class="pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 w-80"
+                                    >
+                                </div>
+                                <select class="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                                    <option>Todas as funções</option>
+                                    <option>Administrador</option>
+                                    <option>Usuário</option>
+                                    <option>Auditor</option>
+                                </select>
+                            </div>
+                            <button class="px-4 py-2 border border-gray-300 hover:bg-gray-50 text-gray-700 rounded-lg flex items-center">
+                                <i data-lucide="download" class="w-4 h-4 mr-2"></i>
+                                Exportar
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Users Table -->
+                    <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+                        <div class="overflow-x-auto">
+                            <table class="min-w-full divide-y divide-gray-200">
+                                <thead class="bg-gray-50">
+                                    <tr>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Usuário</th>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Email</th>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Função</th>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Organização</th>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Último Login</th>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Ações</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="bg-white divide-y divide-gray-200">
+                                    <tr class="hover:bg-gray-50">
+                                        <td class="px-6 py-4 whitespace-nowrap">
+                                            <div class="flex items-center">
+                                                <div class="w-10 h-10 bg-blue-500 rounded-full flex items-center justify-center">
+                                                    <span class="text-white font-medium">AS</span>
+                                                </div>
+                                                <div class="ml-4">
+                                                    <div class="text-sm font-medium text-gray-900">Administrador do Sistema</div>
+                                                    <div class="text-sm text-gray-500">@admin</div>
+                                                </div>
+                                            </div>
+                                        </td>
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">admin@certguard.com</td>
+                                        <td class="px-6 py-4 whitespace-nowrap">
+                                            <span class="px-2 py-1 text-xs font-medium bg-red-100 text-red-800 rounded-full">Super Admin</span>
+                                        </td>
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">Sistema Principal</td>
+                                        <td class="px-6 py-4 whitespace-nowrap">
+                                            <span class="px-2 py-1 text-xs font-medium bg-green-100 text-green-800 rounded-full">Ativo</span>
+                                        </td>
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">2025-01-26 14:30</td>
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium space-x-2">
+                                            <button class="text-blue-600 hover:text-blue-900">
+                                                <i data-lucide="eye" class="w-4 h-4"></i>
+                                            </button>
+                                            <button class="text-green-600 hover:text-green-900">
+                                                <i data-lucide="edit" class="w-4 h-4"></i>
+                                            </button>
+                                            <button class="text-red-600 hover:text-red-900">
+                                                <i data-lucide="trash-2" class="w-4 h-4"></i>
+                                            </button>
+                                        </td>
+                                    </tr>
+                                    <tr class="hover:bg-gray-50">
+                                        <td class="px-6 py-4 whitespace-nowrap">
+                                            <div class="flex items-center">
+                                                <div class="w-10 h-10 bg-green-500 rounded-full flex items-center justify-center">
+                                                    <span class="text-white font-medium">JS</span>
+                                                </div>
+                                                <div class="ml-4">
+                                                    <div class="text-sm font-medium text-gray-900">João Silva Santos</div>
+                                                    <div class="text-sm text-gray-500">@joao.silva</div>
+                                                </div>
+                                            </div>
+                                        </td>
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">joao@escritorio.com</td>
+                                        <td class="px-6 py-4 whitespace-nowrap">
+                                            <span class="px-2 py-1 text-xs font-medium bg-blue-100 text-blue-800 rounded-full">Admin</span>
+                                        </td>
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">Escritório Silva & Associados</td>
+                                        <td class="px-6 py-4 whitespace-nowrap">
+                                            <span class="px-2 py-1 text-xs font-medium bg-green-100 text-green-800 rounded-full">Ativo</span>
+                                        </td>
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">2025-01-26 09:15</td>
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium space-x-2">
+                                            <button class="text-blue-600 hover:text-blue-900">
+                                                <i data-lucide="eye" class="w-4 h-4"></i>
+                                            </button>
+                                            <button class="text-green-600 hover:text-green-900">
+                                                <i data-lucide="edit" class="w-4 h-4"></i>
+                                            </button>
+                                            <button class="text-red-600 hover:text-red-900">
+                                                <i data-lucide="trash-2" class="w-4 h-4"></i>
+                                            </button>
+                                        </td>
+                                    </tr>
+                                    <tr class="hover:bg-gray-50">
+                                        <td class="px-6 py-4 whitespace-nowrap">
+                                            <div class="flex items-center">
+                                                <div class="w-10 h-10 bg-purple-500 rounded-full flex items-center justify-center">
+                                                    <span class="text-white font-medium">MC</span>
+                                                </div>
+                                                <div class="ml-4">
+                                                    <div class="text-sm font-medium text-gray-900">Maria Costa Oliveira</div>
+                                                    <div class="text-sm text-gray-500">@maria.costa</div>
+                                                </div>
+                                            </div>
+                                        </td>
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">maria@advocacia.com</td>
+                                        <td class="px-6 py-4 whitespace-nowrap">
+                                            <span class="px-2 py-1 text-xs font-medium bg-gray-100 text-gray-800 rounded-full">Usuário</span>
+                                        </td>
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">Advocacia Costa</td>
+                                        <td class="px-6 py-4 whitespace-nowrap">
+                                            <span class="px-2 py-1 text-xs font-medium bg-green-100 text-green-800 rounded-full">Ativo</span>
+                                        </td>
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">2025-01-25 16:45</td>
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium space-x-2">
+                                            <button class="text-blue-600 hover:text-blue-900">
+                                                <i data-lucide="eye" class="w-4 h-4"></i>
+                                            </button>
+                                            <button class="text-green-600 hover:text-green-900">
+                                                <i data-lucide="edit" class="w-4 h-4"></i>
+                                            </button>
+                                            <button class="text-red-600 hover:text-red-900">
+                                                <i data-lucide="trash-2" class="w-4 h-4"></i>
+                                            </button>
+                                        </td>
+                                    </tr>
+                                    <tr class="hover:bg-gray-50">
+                                        <td class="px-6 py-4 whitespace-nowrap">
+                                            <div class="flex items-center">
+                                                <div class="w-10 h-10 bg-gray-400 rounded-full flex items-center justify-center">
+                                                    <span class="text-white font-medium">PS</span>
+                                                </div>
+                                                <div class="ml-4">
+                                                    <div class="text-sm font-medium text-gray-900">Pedro Santos Lima</div>
+                                                    <div class="text-sm text-gray-500">@pedro.santos</div>
+                                                </div>
+                                            </div>
+                                        </td>
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">pedro@juridico.com</td>
+                                        <td class="px-6 py-4 whitespace-nowrap">
+                                            <span class="px-2 py-1 text-xs font-medium bg-gray-100 text-gray-800 rounded-full">Usuário</span>
+                                        </td>
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">Jurídico Santos</td>
+                                        <td class="px-6 py-4 whitespace-nowrap">
+                                            <span class="px-2 py-1 text-xs font-medium bg-red-100 text-red-800 rounded-full">Inativo</span>
+                                        </td>
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">2025-01-20 11:20</td>
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium space-x-2">
+                                            <button class="text-blue-600 hover:text-blue-900">
+                                                <i data-lucide="eye" class="w-4 h-4"></i>
+                                            </button>
+                                            <button class="text-green-600 hover:text-green-900">
+                                                <i data-lucide="edit" class="w-4 h-4"></i>
+                                            </button>
+                                            <button class="text-red-600 hover:text-red-900">
+                                                <i data-lucide="trash-2" class="w-4 h-4"></i>
+                                            </button>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                        
+                        <!-- Pagination -->
+                        <div class="bg-white px-4 py-3 border-t border-gray-200 sm:px-6">
+                            <div class="flex items-center justify-between">
+                                <div class="flex-1 flex justify-between sm:hidden">
+                                    <button class="relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50">
+                                        Anterior
+                                    </button>
+                                    <button class="ml-3 relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50">
+                                        Próximo
+                                    </button>
+                                </div>
+                                <div class="hidden sm:flex-1 sm:flex sm:items-center sm:justify-between">
+                                    <div>
+                                        <p class="text-sm text-gray-700">
+                                            Mostrando <span class="font-medium">1</span> a <span class="font-medium">4</span> de <span class="font-medium">4</span> resultados
+                                        </p>
+                                    </div>
+                                    <div>
+                                        <nav class="relative z-0 inline-flex rounded-md shadow-sm -space-x-px">
+                                            <button class="relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50">
+                                                <i data-lucide="chevron-left" class="h-5 w-5"></i>
+                                            </button>
+                                            <button class="relative inline-flex items-center px-4 py-2 border border-gray-300 bg-blue-50 text-sm font-medium text-blue-600">
+                                                1
+                                            </button>
+                                            <button class="relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50">
+                                                <i data-lucide="chevron-right" class="h-5 w-5"></i>
+                                            </button>
+                                        </nav>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        // Organizations page
+        function loadOrganizations() {
+            pageContent.innerHTML = `
+                <div class="space-y-6">
+                    <!-- Header -->
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <h1 class="text-3xl font-bold text-gray-900">Gerenciamento de Organizações</h1>
+                            <p class="text-gray-600 mt-1">Gerencie organizações, escritórios e empresas do sistema</p>
+                        </div>
+                        <button class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg flex items-center">
+                            <i data-lucide="plus" class="w-4 h-4 mr-2"></i>
+                            Nova Organização
+                        </button>
+                    </div>
+
+                    <!-- Stats Cards -->
+                    <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
+                        <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+                            <div class="flex items-center justify-between">
+                                <div>
+                                    <p class="text-sm font-medium text-gray-600">Total de Organizações</p>
+                                    <p class="text-2xl font-bold text-gray-900 mt-2">4</p>
+                                </div>
+                                <i data-lucide="building-2" class="w-8 h-8 text-blue-600"></i>
+                            </div>
+                        </div>
+
+                        <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+                            <div class="flex items-center justify-between">
+                                <div>
+                                    <p class="text-sm font-medium text-gray-600">Organizações Ativas</p>
+                                    <p class="text-2xl font-bold text-gray-900 mt-2">3</p>
+                                </div>
+                                <i data-lucide="check-circle" class="w-8 h-8 text-green-600"></i>
+                            </div>
+                        </div>
+
+                        <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+                            <div class="flex items-center justify-between">
+                                <div>
+                                    <p class="text-sm font-medium text-gray-600">Total de Usuários</p>
+                                    <p class="text-2xl font-bold text-gray-900 mt-2">38</p>
+                                </div>
+                                <i data-lucide="users" class="w-8 h-8 text-purple-600"></i>
+                            </div>
+                        </div>
+
+                        <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+                            <div class="flex items-center justify-between">
+                                <div>
+                                    <p class="text-sm font-medium text-gray-600">Total de Certificados</p>
+                                    <p class="text-2xl font-bold text-gray-900 mt-2">21</p>
+                                </div>
+                                <i data-lucide="award" class="w-8 h-8 text-orange-600"></i>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Organizations Grid -->
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                        <!-- Organization Card 1 -->
+                        <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6 card-hover">
+                            <div class="flex items-start justify-between mb-4">
+                                <div class="flex items-center space-x-3">
+                                    <div class="w-12 h-12 bg-blue-500 rounded-lg flex items-center justify-center">
+                                        <i data-lucide="building-2" class="w-6 h-6 text-white"></i>
+                                    </div>
+                                    <div>
+                                        <h3 class="text-lg font-semibold text-gray-900">Sistema Principal</h3>
+                                        <p class="text-sm text-gray-500">Administração Central</p>
+                                    </div>
+                                </div>
+                                <span class="px-2 py-1 text-xs font-medium bg-green-100 text-green-800 rounded-full">Ativo</span>
+                            </div>
+                            
+                            <div class="space-y-3">
+                                <div class="flex items-center text-sm text-gray-600">
+                                    <i data-lucide="map-pin" class="w-4 h-4 mr-2"></i>
+                                    Rio de Janeiro, RJ
+                                </div>
+                                <div class="flex items-center text-sm text-gray-600">
+                                    <i data-lucide="users" class="w-4 h-4 mr-2"></i>
+                                    15 usuários
+                                </div>
+                                <div class="flex items-center text-sm text-gray-600">
+                                    <i data-lucide="award" class="w-4 h-4 mr-2"></i>
+                                    8 certificados
+                                </div>
+                            </div>
+
+                            <div class="mt-4 pt-4 border-t border-gray-200 flex items-center justify-between">
+                                <span class="text-xs text-gray-500">Criado em 15/01/2025</span>
+                                <div class="flex items-center space-x-2">
+                                    <button class="text-blue-600 hover:text-blue-900">
+                                        <i data-lucide="eye" class="w-4 h-4"></i>
+                                    </button>
+                                    <button class="text-green-600 hover:text-green-900">
+                                        <i data-lucide="edit" class="w-4 h-4"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Organization Card 2 -->
+                        <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6 card-hover">
+                            <div class="flex items-start justify-between mb-4">
+                                <div class="flex items-center space-x-3">
+                                    <div class="w-12 h-12 bg-green-500 rounded-lg flex items-center justify-center">
+                                        <i data-lucide="building-2" class="w-6 h-6 text-white"></i>
+                                    </div>
+                                    <div>
+                                        <h3 class="text-lg font-semibold text-gray-900">Escritório Silva & Associados</h3>
+                                        <p class="text-sm text-gray-500">Advocacia Empresarial</p>
+                                    </div>
+                                </div>
+                                <span class="px-2 py-1 text-xs font-medium bg-green-100 text-green-800 rounded-full">Ativo</span>
+                            </div>
+                            
+                            <div class="space-y-3">
+                                <div class="flex items-center text-sm text-gray-600">
+                                    <i data-lucide="map-pin" class="w-4 h-4 mr-2"></i>
+                                    São Paulo, SP
+                                </div>
+                                <div class="flex items-center text-sm text-gray-600">
+                                    <i data-lucide="users" class="w-4 h-4 mr-2"></i>
+                                    12 usuários
+                                </div>
+                                <div class="flex items-center text-sm text-gray-600">
+                                    <i data-lucide="award" class="w-4 h-4 mr-2"></i>
+                                    6 certificados
+                                </div>
+                            </div>
+
+                            <div class="mt-4 pt-4 border-t border-gray-200 flex items-center justify-between">
+                                <span class="text-xs text-gray-500">Criado em 18/01/2025</span>
+                                <div class="flex items-center space-x-2">
+                                    <button class="text-blue-600 hover:text-blue-900">
+                                        <i data-lucide="eye" class="w-4 h-4"></i>
+                                    </button>
+                                    <button class="text-green-600 hover:text-green-900">
+                                        <i data-lucide="edit" class="w-4 h-4"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Organization Card 3 -->
+                        <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6 card-hover">
+                            <div class="flex items-start justify-between mb-4">
+                                <div class="flex items-center space-x-3">
+                                    <div class="w-12 h-12 bg-purple-500 rounded-lg flex items-center justify-center">
+                                        <i data-lucide="building-2" class="w-6 h-6 text-white"></i>
+                                    </div>
+                                    <div>
+                                        <h3 class="text-lg font-semibold text-gray-900">Advocacia Costa</h3>
+                                        <p class="text-sm text-gray-500">Direito Civil e Trabalhista</p>
+                                    </div>
+                                </div>
+                                <span class="px-2 py-1 text-xs font-medium bg-green-100 text-green-800 rounded-full">Ativo</span>
+                            </div>
+                            
+                            <div class="space-y-3">
+                                <div class="flex items-center text-sm text-gray-600">
+                                    <i data-lucide="map-pin" class="w-4 h-4 mr-2"></i>
+                                    Belo Horizonte, MG
+                                </div>
+                                <div class="flex items-center text-sm text-gray-600">
+                                    <i data-lucide="users" class="w-4 h-4 mr-2"></i>
+                                    8 usuários
+                                </div>
+                                <div class="flex items-center text-sm text-gray-600">
+                                    <i data-lucide="award" class="w-4 h-4 mr-2"></i>
+                                    4 certificados
+                                </div>
+                            </div>
+
+                            <div class="mt-4 pt-4 border-t border-gray-200 flex items-center justify-between">
+                                <span class="text-xs text-gray-500">Criado em 22/01/2025</span>
+                                <div class="flex items-center space-x-2">
+                                    <button class="text-blue-600 hover:text-blue-900">
+                                        <i data-lucide="eye" class="w-4 h-4"></i>
+                                    </button>
+                                    <button class="text-green-600 hover:text-green-900">
+                                        <i data-lucide="edit" class="w-4 h-4"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Organization Card 4 -->
+                        <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6 card-hover opacity-75">
+                            <div class="flex items-start justify-between mb-4">
+                                <div class="flex items-center space-x-3">
+                                    <div class="w-12 h-12 bg-gray-400 rounded-lg flex items-center justify-center">
+                                        <i data-lucide="building-2" class="w-6 h-6 text-white"></i>
+                                    </div>
+                                    <div>
+                                        <h3 class="text-lg font-semibold text-gray-900">Jurídico Santos</h3>
+                                        <p class="text-sm text-gray-500">Consultoria Jurídica</p>
+                                    </div>
+                                </div>
+                                <span class="px-2 py-1 text-xs font-medium bg-red-100 text-red-800 rounded-full">Inativo</span>
+                            </div>
+                            
+                            <div class="space-y-3">
+                                <div class="flex items-center text-sm text-gray-600">
+                                    <i data-lucide="map-pin" class="w-4 h-4 mr-2"></i>
+                                    Brasília, DF
+                                </div>
+                                <div class="flex items-center text-sm text-gray-600">
+                                    <i data-lucide="users" class="w-4 h-4 mr-2"></i>
+                                    3 usuários
+                                </div>
+                                <div class="flex items-center text-sm text-gray-600">
+                                    <i data-lucide="award" class="w-4 h-4 mr-2"></i>
+                                    3 certificados
+                                </div>
+                            </div>
+
+                            <div class="mt-4 pt-4 border-t border-gray-200 flex items-center justify-between">
+                                <span class="text-xs text-gray-500">Criado em 10/01/2025</span>
+                                <div class="flex items-center space-x-2">
+                                    <button class="text-blue-600 hover:text-blue-900">
+                                        <i data-lucide="eye" class="w-4 h-4"></i>
+                                    </button>
+                                    <button class="text-green-600 hover:text-green-900">
+                                        <i data-lucide="edit" class="w-4 h-4"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        // Certificates page
+        function loadCertificates() {
+            const data = window.certificatesData;
+            pageContent.innerHTML = `
+                <div class="space-y-6">
+                    <!-- Header -->
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <h1 class="text-3xl font-bold text-gray-900">Gestão de Certificados A1/A3</h1>
+                            <p class="text-gray-600 mt-1">Gerenciamento completo de certificados digitais</p>
+                        </div>
+                        <div class="flex space-x-3">
+                            <button class="px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg flex items-center">
+                                <i data-lucide="upload" class="w-4 h-4 mr-2"></i>
+                                Importar A1 (.pfx)
+                            </button>
+                            <button class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg flex items-center">
+                                <i data-lucide="usb" class="w-4 h-4 mr-2"></i>
+                                Detectar A3 (Token)
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Statistics Cards -->
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                        <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+                            <div class="flex items-center justify-between">
+                                <div>
+                                    <p class="text-sm font-medium text-gray-600">Total de Certificados</p>
+                                    <p class="text-3xl font-bold text-gray-900 mt-2">${data.statistics.total}</p>
+                                    <p class="text-xs text-gray-500 mt-1">${data.statistics.a1Count} A1 • ${data.statistics.a3Count} A3</p>
+                                </div>
+                                <div class="p-3 bg-blue-500 rounded-xl">
+                                    <i data-lucide="award" class="w-6 h-6 text-white"></i>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+                            <div class="flex items-center justify-between">
+                                <div>
+                                    <p class="text-sm font-medium text-gray-600">Certificados Ativos</p>
+                                    <p class="text-3xl font-bold text-green-600 mt-2">${data.statistics.active}</p>
+                                    <p class="text-xs text-gray-500 mt-1">Funcionando normalmente</p>
+                                </div>
+                                <div class="p-3 bg-green-500 rounded-xl">
+                                    <i data-lucide="check-circle" class="w-6 h-6 text-white"></i>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+                            <div class="flex items-center justify-between">
+                                <div>
+                                    <p class="text-sm font-medium text-gray-600">Expirando em 30 dias</p>
+                                    <p class="text-3xl font-bold text-yellow-600 mt-2">${data.statistics.expiring}</p>
+                                    <p class="text-xs text-gray-500 mt-1">Requer atenção</p>
+                                </div>
+                                <div class="p-3 bg-yellow-500 rounded-xl">
+                                    <i data-lucide="alert-triangle" class="w-6 h-6 text-white"></i>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+                            <div class="flex items-center justify-between">
+                                <div>
+                                    <p class="text-sm font-medium text-gray-600">Renovação Automática</p>
+                                    <p class="text-3xl font-bold text-purple-600 mt-2">${data.statistics.autoRenewEnabled}</p>
+                                    <p class="text-xs text-gray-500 mt-1">Configurados</p>
+                                </div>
+                                <div class="p-3 bg-purple-500 rounded-xl">
+                                    <i data-lucide="refresh-cw" class="w-6 h-6 text-white"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Filters and Search -->
+                    <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-4">
+                        <div class="flex flex-col md:flex-row md:items-center md:justify-between space-y-4 md:space-y-0">
+                            <div class="flex items-center space-x-4">
+                                <div class="relative">
+                                    <i data-lucide="search" class="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400"></i>
+                                    <input
+                                        type="text"
+                                        placeholder="Buscar por nome, CPF ou organização..."
+                                        class="pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 w-80"
+                                    >
+                                </div>
+                                <select class="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                                    <option>Todos os tipos</option>
+                                    <option>Certificado A1</option>
+                                    <option>Certificado A3</option>
+                                </select>
+                                <select class="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                                    <option>Todos os status</option>
+                                    <option>Ativo</option>
+                                    <option>Expirando</option>
+                                    <option>Expirado</option>
+                                    <option>Suspenso</option>
+                                </select>
+                            </div>
+                            <div class="flex space-x-2">
+                                <button class="px-4 py-2 border border-gray-300 hover:bg-gray-50 text-gray-700 rounded-lg flex items-center">
+                                    <i data-lucide="download" class="w-4 h-4 mr-2"></i>
+                                    Exportar
+                                </button>
+                                <button class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg flex items-center">
+                                    <i data-lucide="refresh-cw" class="w-4 h-4 mr-2"></i>
+                                    Verificar Status
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Certificates Table -->
+                    <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+                        <div class="overflow-x-auto">
+                            <table class="min-w-full divide-y divide-gray-200">
+                                <thead class="bg-gray-50">
+                                    <tr>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Certificado</th>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Tipo</th>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Organização</th>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Validade</th>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Último Uso</th>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Ações</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="bg-white divide-y divide-gray-200">
+                                    ${data.certificates.map(cert => `
+                                        <tr class="hover:bg-gray-50">
+                                            <td class="px-6 py-4 whitespace-nowrap">
+                                                <div class="flex items-center">
+                                                    <div class="w-10 h-10 ${cert.type === 'A3' ? 'bg-blue-500' : 'bg-green-500'} rounded-full flex items-center justify-center">
+                                                        <i data-lucide="${cert.type === 'A3' ? 'usb' : 'file-key'}" class="h-5 w-5 text-white"></i>
+                                                    </div>
+                                                    <div class="ml-4">
+                                                        <div class="text-sm font-medium text-gray-900">${cert.name}</div>
+                                                        <div class="text-sm text-gray-500">CPF: ${cert.cpf}</div>
+                                                        <div class="text-xs text-gray-400">SN: ${cert.serialNumber}</div>
+                                                    </div>
+                                                </div>
+                                            </td>
+                                            <td class="px-6 py-4 whitespace-nowrap">
+                                                <span class="px-2 py-1 text-xs font-medium ${cert.type === 'A3' ? 'bg-blue-100 text-blue-800' : 'bg-green-100 text-green-800'} rounded-full">
+                                                    ${cert.type}
+                                                </span>
+                                                <div class="text-xs text-gray-500 mt-1">${cert.device}</div>
+                                            </td>
+                                            <td class="px-6 py-4 whitespace-nowrap">
+                                                <div class="text-sm text-gray-900">${cert.organization}</div>
+                                                <div class="text-sm text-gray-500">${cert.issuer}</div>
+                                            </td>
+                                            <td class="px-6 py-4 whitespace-nowrap">
+                                                <div class="text-sm text-gray-900">${new Date(cert.validTo).toLocaleDateString('pt-BR')}</div>
+                                                <div class="text-xs text-gray-500">Válido desde ${new Date(cert.validFrom).toLocaleDateString('pt-BR')}</div>
+                                            </td>
+                                            <td class="px-6 py-4 whitespace-nowrap">
+                                                <span class="px-2 py-1 text-xs font-medium rounded-full ${
+                                                    cert.status === 'Ativo' ? 'bg-green-100 text-green-800' :
+                                                    cert.status === 'Expirando' ? 'bg-yellow-100 text-yellow-800' :
+                                                    cert.status === 'Expirado' ? 'bg-red-100 text-red-800' :
+                                                    'bg-gray-100 text-gray-800'
+                                                }">
+                                                    ${cert.status}
+                                                </span>
+                                                ${cert.autoRenew ? '<div class="text-xs text-blue-600 mt-1">Auto-renovação</div>' : ''}
+                                            </td>
+                                            <td class="px-6 py-4 whitespace-nowrap">
+                                                <div class="text-sm text-gray-900">${cert.lastUsed}</div>
+                                                <div class="text-xs text-gray-500">${cert.usageCount} usos</div>
+                                            </td>
+                                            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium space-x-2">
+                                                <button class="text-blue-600 hover:text-blue-900" title="Visualizar">
+                                                    <i data-lucide="eye" class="w-4 h-4"></i>
+                                                </button>
+                                                <button class="text-green-600 hover:text-green-900" title="Testar">
+                                                    <i data-lucide="play" class="w-4 h-4"></i>
+                                                </button>
+                                                <button class="text-purple-600 hover:text-purple-900" title="Renovar">
+                                                    <i data-lucide="refresh-cw" class="w-4 h-4"></i>
+                                                </button>
+                                                <button class="text-red-600 hover:text-red-900" title="Revogar">
+                                                    <i data-lucide="x-circle" class="w-4 h-4"></i>
+                                                </button>
+                                            </td>
+                                        </tr>
+                                    `).join('')}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <!-- Recent Activity -->
+                    <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+                        <h3 class="text-lg font-semibold text-gray-900 mb-4 flex items-center">
+                            <i data-lucide="activity" class="w-5 h-5 text-blue-600 mr-2"></i>
+                            Atividade Recente
+                        </h3>
+                        <div class="space-y-3">
+                            ${data.recentActivity.map(activity => `
+                                <div class="flex items-start space-x-3 p-3 bg-gray-50 rounded-lg">
+                                    <i data-lucide="clock" class="w-4 h-4 text-gray-400 mt-0.5"></i>
+                                    <div class="flex-1">
+                                        <p class="text-sm font-medium text-gray-900">${activity.action}</p>
+                                        <p class="text-sm text-gray-600">${activity.certificate}</p>
+                                        <p class="text-xs text-gray-500">${activity.details}</p>
+                                        <p class="text-xs text-gray-400 mt-1">${activity.timestamp}</p>
+                                    </div>
+                                </div>
+                            `).join('')}
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        // Tribunals page
+        function loadTribunals() {
+            pageContent.innerHTML = `
+                <div class="space-y-6">
+                    <!-- Header -->
+                    <div class="text-center">
+                        <div class="flex justify-center mb-4">
+                            <div class="p-4 bg-gradient-to-r from-green-100 to-blue-100 rounded-full">
+                                <i data-lucide="globe" class="w-12 h-12 text-green-600"></i>
+                            </div>
+                        </div>
+                        <h1 class="text-3xl font-bold text-gray-900 mb-2">Sites/Tribunais</h1>
+                        <p class="text-lg text-gray-600 max-w-2xl mx-auto">Configuração de integrações com tribunais e sites jurídicos</p>
+                        <span class="inline-block mt-4 px-3 py-1 bg-green-100 text-green-800 text-sm rounded-full">
+                            <i data-lucide="construction" class="w-3 h-3 mr-1 inline"></i>
+                            Em Desenvolvimento
+                        </span>
+                    </div>
+
+                    <!-- Tribunals Grid -->
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                        <!-- TJ-RJ -->
+                        <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+                            <div class="flex items-center space-x-3 mb-4">
+                                <div class="w-12 h-12 bg-red-500 rounded-lg flex items-center justify-center">
+                                    <i data-lucide="building" class="w-6 h-6 text-white"></i>
+                                </div>
+                                <div>
+                                    <h3 class="text-lg font-semibold text-gray-900">TJ-RJ</h3>
+                                    <p class="text-sm text-gray-500">Tribunal de Justiça do Rio de Janeiro</p>
+                                </div>
+                            </div>
+                            <div class="space-y-2 text-sm text-gray-600">
+                                <div class="flex items-center">
+                                    <i data-lucide="check" class="w-4 h-4 text-green-600 mr-2"></i>
+                                    Login automático
+                                </div>
+                                <div class="flex items-center">
+                                    <i data-lucide="check" class="w-4 h-4 text-green-600 mr-2"></i>
+                                    Peticionamento eletrônico
+                                </div>
+                                <div class="flex items-center">
+                                    <i data-lucide="clock" class="w-4 h-4 text-yellow-600 mr-2"></i>
+                                    Consulta de processos
+                                </div>
+                            </div>
+                            <div class="mt-4 pt-4 border-t border-gray-200">
+                                <span class="inline-block px-2 py-1 bg-yellow-100 text-yellow-800 text-xs rounded-full">Em Desenvolvimento</span>
+                            </div>
+                        </div>
+
+                        <!-- TJSP -->
+                        <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+                            <div class="flex items-center space-x-3 mb-4">
+                                <div class="w-12 h-12 bg-blue-500 rounded-lg flex items-center justify-center">
+                                    <i data-lucide="building" class="w-6 h-6 text-white"></i>
+                                </div>
+                                <div>
+                                    <h3 class="text-lg font-semibold text-gray-900">TJSP</h3>
+                                    <p class="text-sm text-gray-500">Tribunal de Justiça de São Paulo</p>
+                                </div>
+                            </div>
+                            <div class="space-y-2 text-sm text-gray-600">
+                                <div class="flex items-center">
+                                    <i data-lucide="check" class="w-4 h-4 text-green-600 mr-2"></i>
+                                    Login automático
+                                </div>
+                                <div class="flex items-center">
+                                    <i data-lucide="clock" class="w-4 h-4 text-yellow-600 mr-2"></i>
+                                    Peticionamento eletrônico
+                                </div>
+                                <div class="flex items-center">
+                                    <i data-lucide="clock" class="w-4 h-4 text-yellow-600 mr-2"></i>
+                                    Consulta de processos
+                                </div>
+                            </div>
+                            <div class="mt-4 pt-4 border-t border-gray-200">
+                                <span class="inline-block px-2 py-1 bg-yellow-100 text-yellow-800 text-xs rounded-full">Em Desenvolvimento</span>
+                            </div>
+                        </div>
+
+                        <!-- TRF-2 -->
+                        <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+                            <div class="flex items-center space-x-3 mb-4">
+                                <div class="w-12 h-12 bg-purple-500 rounded-lg flex items-center justify-center">
+                                    <i data-lucide="building" class="w-6 h-6 text-white"></i>
+                                </div>
+                                <div>
+                                    <h3 class="text-lg font-semibold text-gray-900">TRF-2</h3>
+                                    <p class="text-sm text-gray-500">Tribunal Regional Federal da 2ª Região</p>
+                                </div>
+                            </div>
+                            <div class="space-y-2 text-sm text-gray-600">
+                                <div class="flex items-center">
+                                    <i data-lucide="clock" class="w-4 h-4 text-yellow-600 mr-2"></i>
+                                    Login automático
+                                </div>
+                                <div class="flex items-center">
+                                    <i data-lucide="clock" class="w-4 h-4 text-yellow-600 mr-2"></i>
+                                    Peticionamento eletrônico
+                                </div>
+                                <div class="flex items-center">
+                                    <i data-lucide="clock" class="w-4 h-4 text-yellow-600 mr-2"></i>
+                                    Consulta de processos
+                                </div>
+                            </div>
+                            <div class="mt-4 pt-4 border-t border-gray-200">
+                                <span class="inline-block px-2 py-1 bg-gray-100 text-gray-800 text-xs rounded-full">Planejado</span>
+                            </div>
+                        </div>
+
+                        <!-- PJe -->
+                        <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+                            <div class="flex items-center space-x-3 mb-4">
+                                <div class="w-12 h-12 bg-green-500 rounded-lg flex items-center justify-center">
+                                    <i data-lucide="file-text" class="w-6 h-6 text-white"></i>
+                                </div>
+                                <div>
+                                    <h3 class="text-lg font-semibold text-gray-900">PJe</h3>
+                                    <p class="text-sm text-gray-500">Processo Judicial Eletrônico</p>
+                                </div>
+                            </div>
+                            <div class="space-y-2 text-sm text-gray-600">
+                                <div class="flex items-center">
+                                    <i data-lucide="clock" class="w-4 h-4 text-yellow-600 mr-2"></i>
+                                    Login automático
+                                </div>
+                                <div class="flex items-center">
+                                    <i data-lucide="clock" class="w-4 h-4 text-yellow-600 mr-2"></i>
+                                    Peticionamento eletrônico
+                                </div>
+                                <div class="flex items-center">
+                                    <i data-lucide="clock" class="w-4 h-4 text-yellow-600 mr-2"></i>
+                                    Consulta de processos
+                                </div>
+                            </div>
+                            <div class="mt-4 pt-4 border-t border-gray-200">
+                                <span class="inline-block px-2 py-1 bg-gray-100 text-gray-800 text-xs rounded-full">Planejado</span>
+                            </div>
+                        </div>
+
+                        <!-- E-SAJ -->
+                        <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+                            <div class="flex items-center space-x-3 mb-4">
+                                <div class="w-12 h-12 bg-orange-500 rounded-lg flex items-center justify-center">
+                                    <i data-lucide="scale" class="w-6 h-6 text-white"></i>
+                                </div>
+                                <div>
+                                    <h3 class="text-lg font-semibold text-gray-900">E-SAJ</h3>
+                                    <p class="text-sm text-gray-500">Sistema de Automação da Justiça</p>
+                                </div>
+                            </div>
+                            <div class="space-y-2 text-sm text-gray-600">
+                                <div class="flex items-center">
+                                    <i data-lucide="clock" class="w-4 h-4 text-yellow-600 mr-2"></i>
+                                    Login automático
+                                </div>
+                                <div class="flex items-center">
+                                    <i data-lucide="clock" class="w-4 h-4 text-yellow-600 mr-2"></i>
+                                    Peticionamento eletrônico
+                                </div>
+                                <div class="flex items-center">
+                                    <i data-lucide="clock" class="w-4 h-4 text-yellow-600 mr-2"></i>
+                                    Consulta de processos
+                                </div>
+                            </div>
+                            <div class="mt-4 pt-4 border-t border-gray-200">
+                                <span class="inline-block px-2 py-1 bg-gray-100 text-gray-800 text-xs rounded-full">Planejado</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        // Permissions page
+        function loadPermissions() {
+            pageContent.innerHTML = `
+                <div class="space-y-6">
+                    <!-- Header -->
+                    <div class="text-center">
+                        <div class="flex justify-center mb-4">
+                            <div class="p-4 bg-gradient-to-r from-pink-100 to-purple-100 rounded-full">
+                                <i data-lucide="user-check" class="w-12 h-12 text-pink-600"></i>
+                            </div>
+                        </div>
+                        <h1 class="text-3xl font-bold text-gray-900 mb-2">Atribuições</h1>
+                        <p class="text-lg text-gray-600 max-w-2xl mx-auto">Gestão de permissões e atribuições de usuários</p>
+                        <span class="inline-block mt-4 px-3 py-1 bg-pink-100 text-pink-800 text-sm rounded-full">
+                            <i data-lucide="construction" class="w-3 h-3 mr-1 inline"></i>
+                            Em Desenvolvimento
+                        </span>
+                    </div>
+
+                    <!-- Features Preview -->
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                        <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+                            <h3 class="text-lg font-semibold text-gray-900 mb-4 flex items-center">
+                                <i data-lucide="lightbulb" class="w-5 h-5 text-yellow-600 mr-2"></i>
+                                Funcionalidades Planejadas
+                            </h3>
+                            <div class="space-y-3">
+                                <div class="flex items-center space-x-3">
+                                    <div class="w-2 h-2 bg-pink-600 rounded-full"></div>
+                                    <span class="text-gray-700">Controle granular de permissões</span>
+                                </div>
+                                <div class="flex items-center space-x-3">
+                                    <div class="w-2 h-2 bg-pink-600 rounded-full"></div>
+                                    <span class="text-gray-700">Grupos de usuários personalizados</span>
+                                </div>
+                                <div class="flex items-center space-x-3">
+                                    <div class="w-2 h-2 bg-pink-600 rounded-full"></div>
+                                    <span class="text-gray-700">Políticas de acesso por horário</span>
+                                </div>
+                                <div class="flex items-center space-x-3">
+                                    <div class="w-2 h-2 bg-pink-600 rounded-full"></div>
+                                    <span class="text-gray-700">Auditoria de permissões</span>
+                                </div>
+                                <div class="flex items-center space-x-3">
+                                    <div class="w-2 h-2 bg-pink-600 rounded-full"></div>
+                                    <span class="text-gray-700">Delegação de responsabilidades</span>
+                                </div>
+                                <div class="flex items-center space-x-3">
+                                    <div class="w-2 h-2 bg-pink-600 rounded-full"></div>
+                                    <span class="text-gray-700">Aprovação de workflows</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Permission Matrix Preview -->
+                        <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+                            <h3 class="text-lg font-semibold text-gray-900 mb-4">Matriz de Permissões (Preview)</h3>
+                            <div class="overflow-x-auto">
+                                <table class="min-w-full">
+                                    <thead>
+                                        <tr class="border-b border-gray-200">
+                                            <th class="text-left text-xs font-medium text-gray-500 uppercase py-2">Função</th>
+                                            <th class="text-center text-xs font-medium text-gray-500 uppercase py-2">Usuários</th>
+                                            <th class="text-center text-xs font-medium text-gray-500 uppercase py-2">Certificados</th>
+                                            <th class="text-center text-xs font-medium text-gray-500 uppercase py-2">Relatórios</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody class="divide-y divide-gray-200">
+                                        <tr>
+                                            <td class="py-2 text-sm font-medium text-gray-900">Super Admin</td>
+                                            <td class="py-2 text-center">
+                                                <i data-lucide="check" class="w-4 h-4 text-green-600 mx-auto"></i>
+                                            </td>
+                                            <td class="py-2 text-center">
+                                                <i data-lucide="check" class="w-4 h-4 text-green-600 mx-auto"></i>
+                                            </td>
+                                            <td class="py-2 text-center">
+                                                <i data-lucide="check" class="w-4 h-4 text-green-600 mx-auto"></i>
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <td class="py-2 text-sm font-medium text-gray-900">Admin</td>
+                                            <td class="py-2 text-center">
+                                                <i data-lucide="check" class="w-4 h-4 text-green-600 mx-auto"></i>
+                                            </td>
+                                            <td class="py-2 text-center">
+                                                <i data-lucide="check" class="w-4 h-4 text-green-600 mx-auto"></i>
+                                            </td>
+                                            <td class="py-2 text-center">
+                                                <i data-lucide="eye" class="w-4 h-4 text-blue-600 mx-auto"></i>
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <td class="py-2 text-sm font-medium text-gray-900">Usuário</td>
+                                            <td class="py-2 text-center">
+                                                <i data-lucide="eye" class="w-4 h-4 text-blue-600 mx-auto"></i>
+                                            </td>
+                                            <td class="py-2 text-center">
+                                                <i data-lucide="eye" class="w-4 h-4 text-blue-600 mx-auto"></i>
+                                            </td>
+                                            <td class="py-2 text-center">
+                                                <i data-lucide="x" class="w-4 h-4 text-red-600 mx-auto"></i>
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        // Security page
+        function loadSecurity() {
+            pageContent.innerHTML = `
+                <div class="space-y-6">
+                    <!-- Header -->
+                    <div>
+                        <h1 class="text-3xl font-bold text-gray-900">Configuração da LucIA</h1>
+                        <p class="text-gray-600 mt-1">Configure modelos de IA e parâmetros do sistema</p>
+                    </div>
+
+                    <!-- LucIA Status -->
+                    <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+                        <div class="flex items-center justify-between mb-6">
+                            <div class="flex items-center space-x-3">
+                                <div class="w-12 h-12 bg-green-500 rounded-lg flex items-center justify-center">
+                                    <i data-lucide="bot" class="w-6 h-6 text-white"></i>
+                                </div>
+                                <div>
+                                    <h3 class="text-lg font-semibold text-gray-900">LucIA Ativada</h3>
+                                    <p class="text-sm text-gray-500">Todos os modelos configurados e funcionando</p>
+                                </div>
+                            </div>
+                            <div class="flex items-center space-x-2">
+                                <span class="w-3 h-3 bg-green-500 rounded-full"></span>
+                                <span class="text-sm font-medium text-green-700">Online</span>
+                            </div>
+                        </div>
+
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                            <div class="text-center p-4 bg-blue-50 rounded-lg">
+                                <i data-lucide="cpu" class="w-8 h-8 text-blue-600 mx-auto mb-2"></i>
+                                <h4 class="font-medium text-blue-900">Modelos de IA</h4>
+                                <p class="text-sm text-blue-700">Configurados</p>
+                            </div>
+                            <div class="text-center p-4 bg-green-50 rounded-lg">
+                                <i data-lucide="settings" class="w-8 h-8 text-green-600 mx-auto mb-2"></i>
+                                <h4 class="font-medium text-green-900">Configurações</h4>
+                                <p class="text-sm text-green-700">Otimizadas</p>
+                            </div>
+                            <div class="text-center p-4 bg-purple-50 rounded-lg">
+                                <i data-lucide="bar-chart" class="w-8 h-8 text-purple-600 mx-auto mb-2"></i>
+                                <h4 class="font-medium text-purple-900">Analytics</h4>
+                                <p class="text-sm text-purple-700">Ativo</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Configuration Panels -->
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                        <!-- Chat/Suporte -->
+                        <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+                            <h3 class="text-lg font-semibold text-gray-900 mb-4">Chat/Suporte</h3>
+                            <p class="text-sm text-gray-600 mb-4">Conversas interativas e suporte aos usuários</p>
+                            
+                            <div class="flex items-center justify-between mb-4">
+                                <span class="text-sm font-medium text-gray-700">Status</span>
+                                <div class="flex items-center space-x-2">
+                                    <span class="w-2 h-2 bg-green-500 rounded-full"></span>
+                                    <span class="text-sm text-green-700">Conectado</span>
+                                </div>
+                            </div>
+
+                            <div class="space-y-4">
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-2">Provedor</label>
+                                    <select class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                                        <option selected>OpenAI</option>
+                                        <option>Anthropic</option>
+                                        <option>Google</option>
+                                    </select>
+                                </div>
+
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-2">Modelo</label>
+                                    <select class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                                        <option selected>gpt-4</option>
+                                        <option>gpt-3.5-turbo</option>
+                                        <option>gpt-4-turbo</option>
+                                    </select>
+                                </div>
+
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-2">API Key</label>
+                                    <input 
+                                        type="password" 
+                                        value="sk-••••••••••••••••••••••••••••••••••••••••"
+                                        class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                        readonly
+                                    >
+                                </div>
+
+                                <div class="grid grid-cols-2 gap-4">
+                                    <div>
+                                        <label class="block text-sm font-medium text-gray-700 mb-2">Temperatura</label>
+                                        <input 
+                                            type="number" 
+                                            value="0.7"
+                                            step="0.1"
+                                            min="0"
+                                            max="2"
+                                            class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                        >
+                                    </div>
+                                    <div>
+                                        <label class="block text-sm font-medium text-gray-700 mb-2">Max Tokens</label>
+                                        <input 
+                                            type="number" 
+                                            value="2048"
+                                            class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                        >
+                                    </div>
+                                </div>
+
+                                <div class="flex space-x-3">
+                                    <button class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-sm">
+                                        Testar Conexão
+                                    </button>
+                                    <button class="px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg text-sm">
+                                        Salvar
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Analytics -->
+                        <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+                            <h3 class="text-lg font-semibold text-gray-900 mb-4">Analytics da LucIA</h3>
+                            <p class="text-sm text-gray-600 mb-4">Métricas de uso e performance</p>
+
+                            <div class="space-y-4">
+                                <div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                                    <span class="text-sm font-medium text-gray-700">Consultas Hoje</span>
+                                    <span class="text-lg font-bold text-blue-600">247</span>
+                                </div>
+
+                                <div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                                    <span class="text-sm font-medium text-gray-700">Tempo Médio de Resposta</span>
+                                    <span class="text-lg font-bold text-green-600">1.2s</span>
+                                </div>
+
+                                <div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                                    <span class="text-sm font-medium text-gray-700">Taxa de Sucesso</span>
+                                    <span class="text-lg font-bold text-green-600">99.8%</span>
+                                </div>
+
+                                <div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                                    <span class="text-sm font-medium text-gray-700">Usuários Ativos</span>
+                                    <span class="text-lg font-bold text-purple-600">156</span>
+                                </div>
+                            </div>
+
+                            <div class="mt-6">
+                                <h4 class="text-sm font-medium text-gray-700 mb-3">Funcionalidades Mais Usadas</h4>
+                                <div class="space-y-2">
+                                    <div class="flex items-center justify-between">
+                                        <span class="text-sm text-gray-600">Análise de Documentos</span>
+                                        <div class="flex items-center space-x-2">
+                                            <div class="w-20 bg-gray-200 rounded-full h-2">
+                                                <div class="bg-blue-600 h-2 rounded-full" style="width: 85%"></div>
+                                            </div>
+                                            <span class="text-xs text-gray-500">85%</span>
+                                        </div>
+                                    </div>
+                                    <div class="flex items-center justify-between">
+                                        <span class="text-sm text-gray-600">Consulta de Processos</span>
+                                        <div class="flex items-center space-x-2">
+                                            <div class="w-20 bg-gray-200 rounded-full h-2">
+                                                <div class="bg-green-600 h-2 rounded-full" style="width: 72%"></div>
+                                            </div>
+                                            <span class="text-xs text-gray-500">72%</span>
+                                        </div>
+                                    </div>
+                                    <div class="flex items-center justify-between">
+                                        <span class="text-sm text-gray-600">Geração de Minutas</span>
+                                        <div class="flex items-center space-x-2">
+                                            <div class="w-20 bg-gray-200 rounded-full h-2">
+                                                <div class="bg-purple-600 h-2 rounded-full" style="width: 58%"></div>
+                                            </div>
+                                            <span class="text-xs text-gray-500">58%</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        // Audit page
+        function loadAudit() {
+            pageContent.innerHTML = `
+                <div class="space-y-6">
+                    <!-- Header -->
+                    <div class="text-center">
+                        <div class="flex justify-center mb-4">
+                            <div class="p-4 bg-gradient-to-r from-gray-100 to-slate-100 rounded-full">
+                                <i data-lucide="file-search" class="w-12 h-12 text-gray-600"></i>
+                            </div>
+                        </div>
+                        <h1 class="text-3xl font-bold text-gray-900 mb-2">Sistema de Auditoria</h1>
+                        <p class="text-lg text-gray-600 max-w-2xl mx-auto">Logs, relatórios e monitoramento de atividades</p>
+                        <span class="inline-block mt-4 px-3 py-1 bg-gray-100 text-gray-800 text-sm rounded-full">
+                            <i data-lucide="construction" class="w-3 h-3 mr-1 inline"></i>
+                            Em Desenvolvimento
+                        </span>
+                    </div>
+
+                    <!-- Features Preview -->
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                        <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+                            <h3 class="text-lg font-semibold text-gray-900 mb-4 flex items-center">
+                                <i data-lucide="lightbulb" class="w-5 h-5 text-yellow-600 mr-2"></i>
+                                Funcionalidades Planejadas
+                            </h3>
+                            <div class="space-y-3">
+                                <div class="flex items-center space-x-3">
+                                    <div class="w-2 h-2 bg-gray-600 rounded-full"></div>
+                                    <span class="text-gray-700">Logs detalhados de todas as ações</span>
+                                </div>
+                                <div class="flex items-center space-x-3">
+                                    <div class="w-2 h-2 bg-gray-600 rounded-full"></div>
+                                    <span class="text-gray-700">Relatórios de conformidade</span>
+                                </div>
+                                <div class="flex items-center space-x-3">
+                                    <div class="w-2 h-2 bg-gray-600 rounded-full"></div>
+                                    <span class="text-gray-700">Alertas de segurança em tempo real</span>
+                                </div>
+                                <div class="flex items-center space-x-3">
+                                    <div class="w-2 h-2 bg-gray-600 rounded-full"></div>
+                                    <span class="text-gray-700">Análise de comportamento</span>
+                                </div>
+                                <div class="flex items-center space-x-3">
+                                    <div class="w-2 h-2 bg-gray-600 rounded-full"></div>
+                                    <span class="text-gray-700">Exportação para órgãos reguladores</span>
+                                </div>
+                                <div class="flex items-center space-x-3">
+                                    <div class="w-2 h-2 bg-gray-600 rounded-full"></div>
+                                    <span class="text-gray-700">Dashboard de compliance</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Audit Log Preview -->
+                        <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+                            <h3 class="text-lg font-semibold text-gray-900 mb-4">Log de Auditoria (Preview)</h3>
+                            <div class="space-y-3">
+                                <div class="flex items-start space-x-3 p-3 bg-green-50 rounded-lg border border-green-200">
+                                    <i data-lucide="check-circle" class="w-4 h-4 text-green-600 mt-0.5"></i>
+                                    <div class="flex-1">
+                                        <p class="text-sm font-medium text-green-800">Login realizado</p>
+                                        <p class="text-xs text-green-600">admin@certguard.com - 26/01/2025 14:30</p>
+                                    </div>
+                                </div>
+                                
+                                <div class="flex items-start space-x-3 p-3 bg-blue-50 rounded-lg border border-blue-200">
+                                    <i data-lucide="user-plus" class="w-4 h-4 text-blue-600 mt-0.5"></i>
+                                    <div class="flex-1">
+                                        <p class="text-sm font-medium text-blue-800">Usuário criado</p>
+                                        <p class="text-xs text-blue-600">João Silva Santos - 26/01/2025 09:15</p>
+                                    </div>
+                                </div>
+                                
+                                <div class="flex items-start space-x-3 p-3 bg-orange-50 rounded-lg border border-orange-200">
+                                    <i data-lucide="award" class="w-4 h-4 text-orange-600 mt-0.5"></i>
+                                    <div class="flex-1">
+                                        <p class="text-sm font-medium text-orange-800">Certificado renovado</p>
+                                        <p class="text-xs text-orange-600">Certificado A3 - 25/01/2025 16:45</p>
+                                    </div>
+                                </div>
+                                
+                                <div class="flex items-start space-x-3 p-3 bg-red-50 rounded-lg border border-red-200">
+                                    <i data-lucide="alert-triangle" class="w-4 h-4 text-red-600 mt-0.5"></i>
+                                    <div class="flex-1">
+                                        <p class="text-sm font-medium text-red-800">Tentativa de login inválida</p>
+                                        <p class="text-xs text-red-600">IP: 192.168.1.100 - 25/01/2025 11:20</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        // Initialize the application
+        document.addEventListener('DOMContentLoaded', () => {
+            lucide.createIcons();
+        });
+    </script>
+</body>
+</html>
+

@@ -1,0 +1,67 @@
+{
+  "manifest_version": 3,
+  "name": "CertGuard AI - Certificados Digitais",
+  "version": "1.0.0",
+  "description": "Extensão para automação de login e peticionamento com certificados digitais A1/A3 em tribunais brasileiros",
+  
+  "permissions": [
+    "activeTab",
+    "storage",
+    "notifications",
+    "scripting"
+  ],
+  
+  "host_permissions": [
+    "https://*.tjrj.jus.br/*",
+    "https://*.tjsp.jus.br/*",
+    "https://*.trf2.jus.br/*",
+    "https://*.pje.jus.br/*",
+    "https://*.esaj.tjsp.jus.br/*",
+    "https://*.projudi.tjrj.jus.br/*"
+  ],
+  
+  "background": {
+    "service_worker": "background.js"
+  },
+  
+  "content_scripts": [
+    {
+      "matches": [
+        "https://*.tjrj.jus.br/*",
+        "https://*.tjsp.jus.br/*",
+        "https://*.trf2.jus.br/*",
+        "https://*.pje.jus.br/*",
+        "https://*.esaj.tjsp.jus.br/*",
+        "https://*.projudi.tjrj.jus.br/*"
+      ],
+      "js": ["extension.js"],
+      "run_at": "document_end"
+    }
+  ],
+  
+  "action": {
+    "default_popup": "popup.html",
+    "default_title": "CertGuard AI",
+    "default_icon": {
+      "16": "icons/icon16.png",
+      "32": "icons/icon32.png",
+      "48": "icons/icon48.png",
+      "128": "icons/icon128.png"
+    }
+  },
+  
+  "icons": {
+    "16": "icons/icon16.png",
+    "32": "icons/icon32.png",
+    "48": "icons/icon48.png",
+    "128": "icons/icon128.png"
+  },
+  
+  "web_accessible_resources": [
+    {
+      "resources": ["extension.js"],
+      "matches": ["<all_urls>"]
+    }
+  ]
+}
+

@@ -1,0 +1,412 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CertGuard AI</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            width: 380px;
+            min-height: 500px;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .header {
+            padding: 20px;
+            text-align: center;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+        }
+
+        .logo {
+            width: 48px;
+            height: 48px;
+            background: rgba(255,255,255,0.2);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 12px;
+            font-size: 24px;
+        }
+
+        .title {
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 4px;
+        }
+
+        .subtitle {
+            font-size: 12px;
+            opacity: 0.8;
+        }
+
+        .content {
+            padding: 20px;
+        }
+
+        .status-card {
+            background: rgba(255,255,255,0.1);
+            border-radius: 12px;
+            padding: 16px;
+            margin-bottom: 16px;
+            backdrop-filter: blur(10px);
+        }
+
+        .status-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 12px;
+        }
+
+        .status-icon {
+            width: 32px;
+            height: 32px;
+            background: rgba(255,255,255,0.2);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 12px;
+            font-size: 16px;
+        }
+
+        .status-text {
+            flex: 1;
+        }
+
+        .status-title {
+            font-size: 14px;
+            font-weight: 600;
+            margin-bottom: 2px;
+        }
+
+        .status-desc {
+            font-size: 12px;
+            opacity: 0.8;
+        }
+
+        .certificates-list {
+            max-height: 150px;
+            overflow-y: auto;
+        }
+
+        .certificate-item {
+            background: rgba(255,255,255,0.05);
+            border-radius: 8px;
+            padding: 12px;
+            margin-bottom: 8px;
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+
+        .cert-name {
+            font-size: 13px;
+            font-weight: 600;
+            margin-bottom: 4px;
+        }
+
+        .cert-details {
+            font-size: 11px;
+            opacity: 0.8;
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .cert-type {
+            background: rgba(255,255,255,0.2);
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-size: 10px;
+            font-weight: 600;
+        }
+
+        .actions {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+            margin-top: 16px;
+        }
+
+        .btn {
+            background: rgba(255,255,255,0.2);
+            border: 1px solid rgba(255,255,255,0.3);
+            color: white;
+            padding: 12px 16px;
+            border-radius: 8px;
+            font-size: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            text-align: center;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .btn:hover {
+            background: rgba(255,255,255,0.3);
+            transform: translateY(-1px);
+        }
+
+        .btn-primary {
+            background: rgba(255,255,255,0.9);
+            color: #667eea;
+        }
+
+        .btn-primary:hover {
+            background: white;
+        }
+
+        .settings {
+            margin-top: 16px;
+            padding-top: 16px;
+            border-top: 1px solid rgba(255,255,255,0.1);
+        }
+
+        .setting-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 12px;
+        }
+
+        .setting-label {
+            font-size: 13px;
+            font-weight: 500;
+        }
+
+        .toggle {
+            width: 40px;
+            height: 20px;
+            background: rgba(255,255,255,0.2);
+            border-radius: 10px;
+            position: relative;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .toggle.active {
+            background: rgba(255,255,255,0.4);
+        }
+
+        .toggle::after {
+            content: '';
+            width: 16px;
+            height: 16px;
+            background: white;
+            border-radius: 50%;
+            position: absolute;
+            top: 2px;
+            left: 2px;
+            transition: all 0.2s;
+        }
+
+        .toggle.active::after {
+            left: 22px;
+        }
+
+        .footer {
+            padding: 16px 20px;
+            text-align: center;
+            border-top: 1px solid rgba(255,255,255,0.1);
+            font-size: 11px;
+            opacity: 0.7;
+        }
+
+        .scrollbar::-webkit-scrollbar {
+            width: 4px;
+        }
+
+        .scrollbar::-webkit-scrollbar-track {
+            background: rgba(255,255,255,0.1);
+            border-radius: 2px;
+        }
+
+        .scrollbar::-webkit-scrollbar-thumb {
+            background: rgba(255,255,255,0.3);
+            border-radius: 2px;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div class="logo">🛡️</div>
+        <div class="title">CertGuard AI</div>
+        <div class="subtitle">Certificados Digitais</div>
+    </div>
+
+    <div class="content">
+        <!-- Status do Site -->
+        <div class="status-card">
+            <div class="status-header">
+                <div class="status-icon">🌐</div>
+                <div class="status-text">
+                    <div class="status-title" id="site-status">Site Detectado</div>
+                    <div class="status-desc" id="site-name">Nenhum tribunal detectado</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Certificados Disponíveis -->
+        <div class="status-card">
+            <div class="status-header">
+                <div class="status-icon">📋</div>
+                <div class="status-text">
+                    <div class="status-title">Certificados Disponíveis</div>
+                    <div class="status-desc">2 certificados carregados</div>
+                </div>
+            </div>
+            
+            <div class="certificates-list scrollbar">
+                <div class="certificate-item">
+                    <div class="cert-name">João Silva Santos</div>
+                    <div class="cert-details">
+                        <span>CPF: 123.456.789-01</span>
+                        <span class="cert-type">A3</span>
+                    </div>
+                </div>
+                
+                <div class="certificate-item">
+                    <div class="cert-name">Maria Costa Oliveira</div>
+                    <div class="cert-details">
+                        <span>CPF: 987.654.321-09</span>
+                        <span class="cert-type">A1</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Ações Rápidas -->
+        <div class="actions">
+            <button class="btn btn-primary" id="auto-login">
+                🔐 Auto Login
+            </button>
+            <button class="btn" id="select-cert">
+                📋 Selecionar
+            </button>
+            <button class="btn" id="open-dashboard">
+                📊 Dashboard
+            </button>
+            <button class="btn" id="capture-screen">
+                📸 Capturar
+            </button>
+        </div>
+
+        <!-- Configurações -->
+        <div class="settings">
+            <div class="setting-item">
+                <span class="setting-label">Auto Login</span>
+                <div class="toggle" id="toggle-auto-login"></div>
+            </div>
+            <div class="setting-item">
+                <span class="setting-label">Captura Automática</span>
+                <div class="toggle active" id="toggle-auto-capture"></div>
+            </div>
+            <div class="setting-item">
+                <span class="setting-label">Notificações</span>
+                <div class="toggle active" id="toggle-notifications"></div>
+            </div>
+        </div>
+    </div>
+
+    <div class="footer">
+        CertGuard AI v1.0.0 - Todos os direitos reservados
+    </div>
+
+    <script>
+        // Detectar site atual
+        chrome.tabs.query({active: true, currentWindow: true}, function(tabs) {
+            const url = tabs[0].url;
+            const hostname = new URL(url).hostname;
+            
+            const tribunalSites = {
+                'tjrj.jus.br': 'TJ-RJ - Tribunal de Justiça do Rio de Janeiro',
+                'tjsp.jus.br': 'TJSP - Tribunal de Justiça de São Paulo',
+                'trf2.jus.br': 'TRF-2 - Tribunal Regional Federal da 2ª Região',
+                'pje.jus.br': 'PJe - Processo Judicial Eletrônico',
+                'esaj.tjsp.jus.br': 'E-SAJ - Sistema de Automação da Justiça',
+                'projudi.tjrj.jus.br': 'PROJUDI - Processo Judicial Digital'
+            };
+
+            let detected = false;
+            for (const [domain, name] of Object.entries(tribunalSites)) {
+                if (hostname.includes(domain)) {
+                    document.getElementById('site-status').textContent = 'Tribunal Detectado';
+                    document.getElementById('site-name').textContent = name;
+                    detected = true;
+                    break;
+                }
+            }
+
+            if (!detected) {
+                document.getElementById('site-status').textContent = 'Site Comum';
+                document.getElementById('site-name').textContent = 'Nenhum tribunal detectado';
+            }
+        });
+
+        // Event listeners para botões
+        document.getElementById('auto-login').addEventListener('click', () => {
+            chrome.tabs.query({active: true, currentWindow: true}, function(tabs) {
+                chrome.scripting.executeScript({
+                    target: {tabId: tabs[0].id},
+                    function: () => {
+                        if (window.CertGuardExtension) {
+                            const extension = new window.CertGuardExtension();
+                            extension.performAutoLogin();
+                        }
+                    }
+                });
+            });
+            window.close();
+        });
+
+        document.getElementById('select-cert').addEventListener('click', () => {
+            chrome.tabs.query({active: true, currentWindow: true}, function(tabs) {
+                chrome.scripting.executeScript({
+                    target: {tabId: tabs[0].id},
+                    function: () => {
+                        if (window.CertGuardExtension) {
+                            const extension = new window.CertGuardExtension();
+                            extension.showCertificateSelector();
+                        }
+                    }
+                });
+            });
+            window.close();
+        });
+
+        document.getElementById('open-dashboard').addEventListener('click', () => {
+            chrome.tabs.create({
+                url: 'https://8080-ick1rotydcjwas9kzjqp5-50bdaabf.manusvm.computer'
+            });
+            window.close();
+        });
+
+        document.getElementById('capture-screen').addEventListener('click', () => {
+            chrome.tabs.captureVisibleTab(null, {format: 'png'}, function(dataUrl) {
+                const link = document.createElement('a');
+                link.download = `certguard-capture-${Date.now()}.png`;
+                link.href = dataUrl;
+                link.click();
+            });
+            window.close();
+        });
+
+        // Toggles
+        document.querySelectorAll('.toggle').forEach(toggle => {
+            toggle.addEventListener('click', () => {
+                toggle.classList.toggle('active');
+            });
+        });
+    </script>
+</body>
+</html>
+
