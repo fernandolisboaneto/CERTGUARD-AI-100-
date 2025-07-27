@@ -1,0 +1,411 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Upload de Certificados - CertGuard AI</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
+    <style>
+        .upload-area {
+            border: 2px dashed #cbd5e1;
+            transition: all 0.3s ease;
+        }
+        .upload-area.dragover {
+            border-color: #3b82f6;
+            background-color: #eff6ff;
+        }
+        .progress-bar {
+            transition: width 0.3s ease;
+        }
+    </style>
+</head>
+<body class="bg-gray-50">
+    <!-- Header -->
+    <header class="bg-white shadow-sm border-b">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center py-4">
+                <div class="flex items-center space-x-3">
+                    <div class="w-10 h-10 bg-blue-600 rounded-lg flex items-center justify-center">
+                        <i data-lucide="shield" class="w-6 h-6 text-white"></i>
+                    </div>
+                    <div>
+                        <h1 class="text-xl font-bold text-gray-900">CertGuard AI</h1>
+                        <p class="text-sm text-gray-500">Upload de Certificados</p>
+                    </div>
+                </div>
+                <button onclick="window.location.href='index.html'" class="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors">
+                    <i data-lucide="arrow-left" class="w-4 h-4 inline mr-2"></i>
+                    Voltar ao Dashboard
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <!-- Upload Form -->
+        <div class="bg-white rounded-xl shadow-sm border p-6 mb-8">
+            <div class="flex items-center space-x-3 mb-6">
+                <div class="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center">
+                    <i data-lucide="upload" class="w-5 h-5 text-green-600"></i>
+                </div>
+                <div>
+                    <h2 class="text-lg font-semibold text-gray-900">Upload de Certificado Digital</h2>
+                    <p class="text-sm text-gray-500">Envie certificados A1/A3 para distribuição aos usuários</p>
+                </div>
+            </div>
+
+            <form id="uploadForm" class="space-y-6">
+                <!-- Área de Upload -->
+                <div class="upload-area rounded-lg p-8 text-center" id="uploadArea">
+                    <div class="space-y-4">
+                        <div class="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto">
+                            <i data-lucide="file-plus" class="w-8 h-8 text-blue-600"></i>
+                        </div>
+                        <div>
+                            <p class="text-lg font-medium text-gray-900">Arraste o certificado aqui</p>
+                            <p class="text-sm text-gray-500">ou clique para selecionar</p>
+                        </div>
+                        <div class="text-xs text-gray-400">
+                            Formatos suportados: .pfx, .p12, .crt, .cer, .pem (máx. 16MB)
+                        </div>
+                    </div>
+                    <input type="file" id="certificateFile" name="certificate" accept=".pfx,.p12,.crt,.cer,.pem" class="hidden">
+                </div>
+
+                <!-- Informações do Certificado -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Nome do Certificado</label>
+                        <input type="text" id="certificateName" name="name" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500" placeholder="Ex: Certificado João Silva">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Senha do Certificado</label>
+                        <input type="password" id="certificatePassword" name="password" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500" placeholder="Senha (se houver)">
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Descrição</label>
+                    <textarea id="certificateDescription" name="description" rows="3" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500" placeholder="Descrição opcional do certificado"></textarea>
+                </div>
+
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Disponibilidade</label>
+                    <select id="targetUsers" name="target_users" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                        <option value="all">Todos os usuários</option>
+                        <option value="organization">Apenas minha organização</option>
+                        <option value="specific">Usuários específicos</option>
+                    </select>
+                </div>
+
+                <!-- Progress Bar -->
+                <div id="progressContainer" class="hidden">
+                    <div class="flex justify-between text-sm text-gray-600 mb-2">
+                        <span>Enviando certificado...</span>
+                        <span id="progressText">0%</span>
+                    </div>
+                    <div class="w-full bg-gray-200 rounded-full h-2">
+                        <div id="progressBar" class="progress-bar bg-blue-600 h-2 rounded-full" style="width: 0%"></div>
+                    </div>
+                </div>
+
+                <!-- Botões -->
+                <div class="flex space-x-4">
+                    <button type="submit" id="uploadBtn" class="flex-1 bg-blue-600 text-white py-3 px-6 rounded-lg hover:bg-blue-700 transition-colors font-medium">
+                        <i data-lucide="upload" class="w-4 h-4 inline mr-2"></i>
+                        Enviar Certificado
+                    </button>
+                    <button type="button" onclick="resetForm()" class="px-6 py-3 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors">
+                        Limpar
+                    </button>
+                </div>
+            </form>
+        </div>
+
+        <!-- Lista de Certificados Enviados -->
+        <div class="bg-white rounded-xl shadow-sm border p-6">
+            <div class="flex items-center justify-between mb-6">
+                <div class="flex items-center space-x-3">
+                    <div class="w-10 h-10 bg-purple-100 rounded-lg flex items-center justify-center">
+                        <i data-lucide="folder" class="w-5 h-5 text-purple-600"></i>
+                    </div>
+                    <div>
+                        <h2 class="text-lg font-semibold text-gray-900">Certificados Disponíveis</h2>
+                        <p class="text-sm text-gray-500">Gerencie os certificados enviados</p>
+                    </div>
+                </div>
+                <button onclick="loadCertificates()" class="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors">
+                    <i data-lucide="refresh-cw" class="w-4 h-4 inline mr-2"></i>
+                    Atualizar
+                </button>
+            </div>
+
+            <div id="certificatesList" class="space-y-4">
+                <!-- Certificados serão carregados aqui -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal de Sucesso -->
+    <div id="successModal" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-50">
+        <div class="bg-white rounded-xl p-6 max-w-md mx-4">
+            <div class="text-center">
+                <div class="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <i data-lucide="check" class="w-8 h-8 text-green-600"></i>
+                </div>
+                <h3 class="text-lg font-semibold text-gray-900 mb-2">Certificado Enviado!</h3>
+                <p class="text-gray-600 mb-6">O certificado foi enviado com sucesso e está disponível para download pelos usuários.</p>
+                <button onclick="closeSuccessModal()" class="w-full bg-green-600 text-white py-2 px-4 rounded-lg hover:bg-green-700 transition-colors">
+                    Continuar
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Inicializar ícones Lucide
+        lucide.createIcons();
+
+        // Elementos
+        const uploadArea = document.getElementById('uploadArea');
+        const fileInput = document.getElementById('certificateFile');
+        const uploadForm = document.getElementById('uploadForm');
+        const progressContainer = document.getElementById('progressContainer');
+        const progressBar = document.getElementById('progressBar');
+        const progressText = document.getElementById('progressText');
+        const uploadBtn = document.getElementById('uploadBtn');
+
+        // Drag and Drop
+        uploadArea.addEventListener('click', () => fileInput.click());
+        uploadArea.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            uploadArea.classList.add('dragover');
+        });
+        uploadArea.addEventListener('dragleave', () => {
+            uploadArea.classList.remove('dragover');
+        });
+        uploadArea.addEventListener('drop', (e) => {
+            e.preventDefault();
+            uploadArea.classList.remove('dragover');
+            const files = e.dataTransfer.files;
+            if (files.length > 0) {
+                fileInput.files = files;
+                updateUploadArea(files[0]);
+            }
+        });
+
+        fileInput.addEventListener('change', (e) => {
+            if (e.target.files.length > 0) {
+                updateUploadArea(e.target.files[0]);
+            }
+        });
+
+        function updateUploadArea(file) {
+            uploadArea.innerHTML = `
+                <div class="space-y-4">
+                    <div class="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto">
+                        <i data-lucide="file-check" class="w-8 h-8 text-green-600"></i>
+                    </div>
+                    <div>
+                        <p class="text-lg font-medium text-gray-900">${file.name}</p>
+                        <p class="text-sm text-gray-500">${(file.size / 1024 / 1024).toFixed(2)} MB</p>
+                    </div>
+                    <button type="button" onclick="clearFile()" class="text-sm text-red-600 hover:text-red-700">
+                        Remover arquivo
+                    </button>
+                </div>
+            `;
+            lucide.createIcons();
+        }
+
+        function clearFile() {
+            fileInput.value = '';
+            uploadArea.innerHTML = `
+                <div class="space-y-4">
+                    <div class="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto">
+                        <i data-lucide="file-plus" class="w-8 h-8 text-blue-600"></i>
+                    </div>
+                    <div>
+                        <p class="text-lg font-medium text-gray-900">Arraste o certificado aqui</p>
+                        <p class="text-sm text-gray-500">ou clique para selecionar</p>
+                    </div>
+                    <div class="text-xs text-gray-400">
+                        Formatos suportados: .pfx, .p12, .crt, .cer, .pem (máx. 16MB)
+                    </div>
+                </div>
+            `;
+            lucide.createIcons();
+        }
+
+        // Upload Form
+        uploadForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            if (!fileInput.files[0]) {
+                alert('Por favor, selecione um certificado');
+                return;
+            }
+
+            const formData = new FormData(uploadForm);
+            
+            // Mostrar progress bar
+            progressContainer.classList.remove('hidden');
+            uploadBtn.disabled = true;
+            uploadBtn.innerHTML = '<i data-lucide="loader" class="w-4 h-4 inline mr-2 animate-spin"></i>Enviando...';
+
+            try {
+                // Simular progresso
+                let progress = 0;
+                const progressInterval = setInterval(() => {
+                    progress += Math.random() * 30;
+                    if (progress > 90) progress = 90;
+                    progressBar.style.width = progress + '%';
+                    progressText.textContent = Math.round(progress) + '%';
+                }, 200);
+
+                const response = await fetch('/api/admin/certificates/upload', {
+                    method: 'POST',
+                    body: formData
+                });
+
+                clearInterval(progressInterval);
+                progressBar.style.width = '100%';
+                progressText.textContent = '100%';
+
+                const result = await response.json();
+
+                if (result.success) {
+                    setTimeout(() => {
+                        showSuccessModal();
+                        resetForm();
+                        loadCertificates();
+                    }, 500);
+                } else {
+                    throw new Error(result.error || 'Erro ao enviar certificado');
+                }
+
+            } catch (error) {
+                alert('Erro ao enviar certificado: ' + error.message);
+                resetForm();
+            }
+        });
+
+        function resetForm() {
+            uploadForm.reset();
+            clearFile();
+            progressContainer.classList.add('hidden');
+            progressBar.style.width = '0%';
+            progressText.textContent = '0%';
+            uploadBtn.disabled = false;
+            uploadBtn.innerHTML = '<i data-lucide="upload" class="w-4 h-4 inline mr-2"></i>Enviar Certificado';
+            lucide.createIcons();
+        }
+
+        function showSuccessModal() {
+            document.getElementById('successModal').classList.remove('hidden');
+            document.getElementById('successModal').classList.add('flex');
+        }
+
+        function closeSuccessModal() {
+            document.getElementById('successModal').classList.add('hidden');
+            document.getElementById('successModal').classList.remove('flex');
+        }
+
+        // Carregar lista de certificados
+        async function loadCertificates() {
+            try {
+                const response = await fetch('/api/admin/certificates');
+                const result = await response.json();
+
+                if (result.success) {
+                    displayCertificates(result.certificates);
+                } else {
+                    throw new Error(result.error);
+                }
+            } catch (error) {
+                console.error('Erro ao carregar certificados:', error);
+                document.getElementById('certificatesList').innerHTML = `
+                    <div class="text-center py-8 text-gray-500">
+                        <i data-lucide="alert-circle" class="w-8 h-8 mx-auto mb-2"></i>
+                        <p>Erro ao carregar certificados</p>
+                    </div>
+                `;
+                lucide.createIcons();
+            }
+        }
+
+        function displayCertificates(certificates) {
+            const container = document.getElementById('certificatesList');
+            
+            if (certificates.length === 0) {
+                container.innerHTML = `
+                    <div class="text-center py-8 text-gray-500">
+                        <i data-lucide="folder-open" class="w-8 h-8 mx-auto mb-2"></i>
+                        <p>Nenhum certificado enviado ainda</p>
+                    </div>
+                `;
+                lucide.createIcons();
+                return;
+            }
+
+            container.innerHTML = certificates.map(cert => `
+                <div class="border border-gray-200 rounded-lg p-4 hover:bg-gray-50 transition-colors">
+                    <div class="flex items-center justify-between">
+                        <div class="flex items-center space-x-3">
+                            <div class="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
+                                <i data-lucide="award" class="w-5 h-5 text-blue-600"></i>
+                            </div>
+                            <div>
+                                <h3 class="font-medium text-gray-900">${cert.name}</h3>
+                                <p class="text-sm text-gray-500">${cert.certificate_info.type} • ${cert.file_type.toUpperCase()}</p>
+                            </div>
+                        </div>
+                        <div class="flex items-center space-x-2">
+                            <span class="px-2 py-1 bg-green-100 text-green-800 text-xs rounded-full">
+                                ${cert.download_count} downloads
+                            </span>
+                            <button onclick="deleteCertificate('${cert.id}')" class="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors">
+                                <i data-lucide="trash-2" class="w-4 h-4"></i>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="mt-3 text-sm text-gray-600">
+                        <p><strong>Organização:</strong> ${cert.certificate_info.organization || 'N/A'}</p>
+                        <p><strong>Válido até:</strong> ${new Date(cert.certificate_info.valid_until).toLocaleDateString('pt-BR')}</p>
+                        <p><strong>Enviado em:</strong> ${new Date(cert.upload_date).toLocaleDateString('pt-BR')}</p>
+                    </div>
+                </div>
+            `).join('');
+            
+            lucide.createIcons();
+        }
+
+        async function deleteCertificate(certificateId) {
+            if (!confirm('Tem certeza que deseja excluir este certificado?')) {
+                return;
+            }
+
+            try {
+                const response = await fetch(`/api/admin/certificates/${certificateId}`, {
+                    method: 'DELETE'
+                });
+
+                const result = await response.json();
+
+                if (result.success) {
+                    loadCertificates();
+                } else {
+                    throw new Error(result.error);
+                }
+            } catch (error) {
+                alert('Erro ao excluir certificado: ' + error.message);
+            }
+        }
+
+        // Carregar certificados ao inicializar
+        loadCertificates();
+    </script>
+</body>
+</html>
+

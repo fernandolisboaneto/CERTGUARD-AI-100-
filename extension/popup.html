@@ -10,7 +10,7 @@
             padding: 0;
             box-sizing: border-box;
         }
-
+        
         body {
             width: 380px;
             min-height: 500px;
@@ -18,58 +18,59 @@
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             color: white;
         }
-
+        
         .header {
             padding: 20px;
             text-align: center;
-            border-bottom: 1px solid rgba(255,255,255,0.1);
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
         }
-
+        
         .logo {
             width: 48px;
             height: 48px;
-            background: rgba(255,255,255,0.2);
+            background: white;
             border-radius: 12px;
+            margin: 0 auto 12px;
             display: flex;
             align-items: center;
             justify-content: center;
-            margin: 0 auto 12px;
             font-size: 24px;
+            color: #667eea;
         }
-
+        
         .title {
             font-size: 18px;
             font-weight: 600;
             margin-bottom: 4px;
         }
-
+        
         .subtitle {
             font-size: 12px;
             opacity: 0.8;
         }
-
+        
         .content {
             padding: 20px;
         }
-
+        
         .status-card {
-            background: rgba(255,255,255,0.1);
+            background: rgba(255, 255, 255, 0.15);
             border-radius: 12px;
             padding: 16px;
             margin-bottom: 16px;
             backdrop-filter: blur(10px);
         }
-
+        
         .status-header {
             display: flex;
             align-items: center;
             margin-bottom: 12px;
         }
-
+        
         .status-icon {
             width: 32px;
             height: 32px;
-            background: rgba(255,255,255,0.2);
             border-radius: 8px;
             display: flex;
             align-items: center;
@@ -77,128 +78,149 @@
             margin-right: 12px;
             font-size: 16px;
         }
-
+        
+        .status-icon.success {
+            background: #10b981;
+        }
+        
+        .status-icon.warning {
+            background: #f59e0b;
+        }
+        
+        .status-icon.info {
+            background: #3b82f6;
+        }
+        
         .status-text {
             flex: 1;
         }
-
+        
         .status-title {
             font-size: 14px;
             font-weight: 600;
             margin-bottom: 2px;
         }
-
+        
         .status-desc {
             font-size: 12px;
             opacity: 0.8;
         }
-
-        .certificates-list {
-            max-height: 150px;
-            overflow-y: auto;
+        
+        .certificates-section {
+            margin-bottom: 20px;
         }
-
+        
+        .section-title {
+            font-size: 14px;
+            font-weight: 600;
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+        }
+        
+        .section-icon {
+            margin-right: 8px;
+        }
+        
         .certificate-item {
-            background: rgba(255,255,255,0.05);
+            background: rgba(255, 255, 255, 0.1);
             border-radius: 8px;
             padding: 12px;
             margin-bottom: 8px;
-            border: 1px solid rgba(255,255,255,0.1);
+            cursor: pointer;
+            transition: all 0.2s;
         }
-
+        
+        .certificate-item:hover {
+            background: rgba(255, 255, 255, 0.2);
+            transform: translateY(-1px);
+        }
+        
         .cert-name {
             font-size: 13px;
-            font-weight: 600;
+            font-weight: 500;
             margin-bottom: 4px;
         }
-
+        
         .cert-details {
             font-size: 11px;
-            opacity: 0.8;
+            opacity: 0.7;
             display: flex;
             justify-content: space-between;
         }
-
-        .cert-type {
-            background: rgba(255,255,255,0.2);
-            padding: 2px 6px;
-            border-radius: 4px;
-            font-size: 10px;
-            font-weight: 600;
-        }
-
+        
         .actions {
             display: grid;
             grid-template-columns: 1fr 1fr;
-            gap: 12px;
-            margin-top: 16px;
+            gap: 8px;
+            margin-bottom: 16px;
         }
-
+        
         .btn {
-            background: rgba(255,255,255,0.2);
-            border: 1px solid rgba(255,255,255,0.3);
-            color: white;
-            padding: 12px 16px;
+            padding: 10px 12px;
+            border: none;
             border-radius: 8px;
             font-size: 12px;
-            font-weight: 600;
+            font-weight: 500;
             cursor: pointer;
             transition: all 0.2s;
-            text-align: center;
-            text-decoration: none;
             display: flex;
             align-items: center;
             justify-content: center;
+            gap: 6px;
         }
-
-        .btn:hover {
-            background: rgba(255,255,255,0.3);
-            transform: translateY(-1px);
-        }
-
+        
         .btn-primary {
-            background: rgba(255,255,255,0.9);
+            background: white;
             color: #667eea;
         }
-
+        
         .btn-primary:hover {
-            background: white;
+            background: #f8fafc;
+            transform: translateY(-1px);
         }
-
+        
+        .btn-secondary {
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+        }
+        
+        .btn-secondary:hover {
+            background: rgba(255, 255, 255, 0.3);
+        }
+        
         .settings {
-            margin-top: 16px;
+            border-top: 1px solid rgba(255, 255, 255, 0.2);
             padding-top: 16px;
-            border-top: 1px solid rgba(255,255,255,0.1);
         }
-
+        
         .setting-item {
             display: flex;
             align-items: center;
             justify-content: space-between;
             margin-bottom: 12px;
         }
-
+        
         .setting-label {
-            font-size: 13px;
-            font-weight: 500;
+            font-size: 12px;
+            opacity: 0.9;
         }
-
+        
         .toggle {
             width: 40px;
             height: 20px;
-            background: rgba(255,255,255,0.2);
+            background: rgba(255, 255, 255, 0.3);
             border-radius: 10px;
             position: relative;
             cursor: pointer;
-            transition: all 0.2s;
+            transition: background 0.2s;
         }
-
+        
         .toggle.active {
-            background: rgba(255,255,255,0.4);
+            background: #10b981;
         }
-
-        .toggle::after {
-            content: '';
+        
+        .toggle-slider {
             width: 16px;
             height: 16px;
             background: white;
@@ -206,33 +228,67 @@
             position: absolute;
             top: 2px;
             left: 2px;
-            transition: all 0.2s;
+            transition: transform 0.2s;
         }
-
-        .toggle.active::after {
-            left: 22px;
+        
+        .toggle.active .toggle-slider {
+            transform: translateX(20px);
         }
-
+        
         .footer {
-            padding: 16px 20px;
             text-align: center;
-            border-top: 1px solid rgba(255,255,255,0.1);
-            font-size: 11px;
-            opacity: 0.7;
+            padding: 16px;
+            border-top: 1px solid rgba(255, 255, 255, 0.2);
         }
-
-        .scrollbar::-webkit-scrollbar {
-            width: 4px;
+        
+        .footer-link {
+            color: white;
+            text-decoration: none;
+            font-size: 12px;
+            opacity: 0.8;
+            margin: 0 8px;
         }
-
-        .scrollbar::-webkit-scrollbar-track {
-            background: rgba(255,255,255,0.1);
-            border-radius: 2px;
+        
+        .footer-link:hover {
+            opacity: 1;
         }
-
-        .scrollbar::-webkit-scrollbar-thumb {
-            background: rgba(255,255,255,0.3);
-            border-radius: 2px;
+        
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 20px;
+        }
+        
+        .spinner {
+            width: 24px;
+            height: 24px;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            border-top: 2px solid white;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 12px;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .notification {
+            position: fixed;
+            top: 10px;
+            right: 10px;
+            background: #10b981;
+            color: white;
+            padding: 8px 12px;
+            border-radius: 6px;
+            font-size: 12px;
+            transform: translateX(100%);
+            transition: transform 0.3s;
+        }
+        
+        .notification.show {
+            transform: translateX(0);
         }
     </style>
 </head>
@@ -240,173 +296,83 @@
     <div class="header">
         <div class="logo">🛡️</div>
         <div class="title">CertGuard AI</div>
-        <div class="subtitle">Certificados Digitais</div>
+        <div class="subtitle">Extensão de Certificados</div>
     </div>
-
+    
     <div class="content">
         <!-- Status do Site -->
         <div class="status-card">
             <div class="status-header">
-                <div class="status-icon">🌐</div>
+                <div class="status-icon info" id="siteStatusIcon">🌐</div>
                 <div class="status-text">
-                    <div class="status-title" id="site-status">Site Detectado</div>
-                    <div class="status-desc" id="site-name">Nenhum tribunal detectado</div>
+                    <div class="status-title" id="siteStatusTitle">Detectando site...</div>
+                    <div class="status-desc" id="siteStatusDesc">Verificando tribunal</div>
                 </div>
             </div>
         </div>
-
+        
         <!-- Certificados Disponíveis -->
-        <div class="status-card">
-            <div class="status-header">
-                <div class="status-icon">📋</div>
-                <div class="status-text">
-                    <div class="status-title">Certificados Disponíveis</div>
-                    <div class="status-desc">2 certificados carregados</div>
-                </div>
+        <div class="certificates-section">
+            <div class="section-title">
+                <span class="section-icon">📜</span>
+                Certificados Disponíveis
             </div>
-            
-            <div class="certificates-list scrollbar">
-                <div class="certificate-item">
-                    <div class="cert-name">João Silva Santos</div>
-                    <div class="cert-details">
-                        <span>CPF: 123.456.789-01</span>
-                        <span class="cert-type">A3</span>
-                    </div>
-                </div>
-                
-                <div class="certificate-item">
-                    <div class="cert-name">Maria Costa Oliveira</div>
-                    <div class="cert-details">
-                        <span>CPF: 987.654.321-09</span>
-                        <span class="cert-type">A1</span>
-                    </div>
+            <div id="certificatesList">
+                <div class="loading" id="loadingCerts">
+                    <div class="spinner"></div>
+                    <div>Carregando certificados...</div>
                 </div>
             </div>
         </div>
-
+        
         <!-- Ações Rápidas -->
         <div class="actions">
-            <button class="btn btn-primary" id="auto-login">
+            <button class="btn btn-primary" id="autoLoginBtn">
                 🔐 Auto Login
             </button>
-            <button class="btn" id="select-cert">
-                📋 Selecionar
-            </button>
-            <button class="btn" id="open-dashboard">
-                📊 Dashboard
-            </button>
-            <button class="btn" id="capture-screen">
+            <button class="btn btn-secondary" id="captureBtn">
                 📸 Capturar
             </button>
+            <button class="btn btn-secondary" id="dashboardBtn">
+                📊 Dashboard
+            </button>
+            <button class="btn btn-secondary" id="downloadBtn">
+                📥 Downloads
+            </button>
         </div>
-
+        
         <!-- Configurações -->
         <div class="settings">
             <div class="setting-item">
                 <span class="setting-label">Auto Login</span>
-                <div class="toggle" id="toggle-auto-login"></div>
+                <div class="toggle" id="autoLoginToggle">
+                    <div class="toggle-slider"></div>
+                </div>
             </div>
             <div class="setting-item">
                 <span class="setting-label">Captura Automática</span>
-                <div class="toggle active" id="toggle-auto-capture"></div>
+                <div class="toggle" id="autoCaptureToggle">
+                    <div class="toggle-slider"></div>
+                </div>
             </div>
             <div class="setting-item">
                 <span class="setting-label">Notificações</span>
-                <div class="toggle active" id="toggle-notifications"></div>
+                <div class="toggle active" id="notificationsToggle">
+                    <div class="toggle-slider"></div>
+                </div>
             </div>
         </div>
     </div>
-
+    
     <div class="footer">
-        CertGuard AI v1.0.0 - Todos os direitos reservados
+        <a href="#" class="footer-link" id="helpLink">Ajuda</a>
+        <a href="#" class="footer-link" id="configLink">Configurar</a>
+        <a href="#" class="footer-link" id="aboutLink">Sobre</a>
     </div>
-
-    <script>
-        // Detectar site atual
-        chrome.tabs.query({active: true, currentWindow: true}, function(tabs) {
-            const url = tabs[0].url;
-            const hostname = new URL(url).hostname;
-            
-            const tribunalSites = {
-                'tjrj.jus.br': 'TJ-RJ - Tribunal de Justiça do Rio de Janeiro',
-                'tjsp.jus.br': 'TJSP - Tribunal de Justiça de São Paulo',
-                'trf2.jus.br': 'TRF-2 - Tribunal Regional Federal da 2ª Região',
-                'pje.jus.br': 'PJe - Processo Judicial Eletrônico',
-                'esaj.tjsp.jus.br': 'E-SAJ - Sistema de Automação da Justiça',
-                'projudi.tjrj.jus.br': 'PROJUDI - Processo Judicial Digital'
-            };
-
-            let detected = false;
-            for (const [domain, name] of Object.entries(tribunalSites)) {
-                if (hostname.includes(domain)) {
-                    document.getElementById('site-status').textContent = 'Tribunal Detectado';
-                    document.getElementById('site-name').textContent = name;
-                    detected = true;
-                    break;
-                }
-            }
-
-            if (!detected) {
-                document.getElementById('site-status').textContent = 'Site Comum';
-                document.getElementById('site-name').textContent = 'Nenhum tribunal detectado';
-            }
-        });
-
-        // Event listeners para botões
-        document.getElementById('auto-login').addEventListener('click', () => {
-            chrome.tabs.query({active: true, currentWindow: true}, function(tabs) {
-                chrome.scripting.executeScript({
-                    target: {tabId: tabs[0].id},
-                    function: () => {
-                        if (window.CertGuardExtension) {
-                            const extension = new window.CertGuardExtension();
-                            extension.performAutoLogin();
-                        }
-                    }
-                });
-            });
-            window.close();
-        });
-
-        document.getElementById('select-cert').addEventListener('click', () => {
-            chrome.tabs.query({active: true, currentWindow: true}, function(tabs) {
-                chrome.scripting.executeScript({
-                    target: {tabId: tabs[0].id},
-                    function: () => {
-                        if (window.CertGuardExtension) {
-                            const extension = new window.CertGuardExtension();
-                            extension.showCertificateSelector();
-                        }
-                    }
-                });
-            });
-            window.close();
-        });
-
-        document.getElementById('open-dashboard').addEventListener('click', () => {
-            chrome.tabs.create({
-                url: 'https://8080-ick1rotydcjwas9kzjqp5-50bdaabf.manusvm.computer'
-            });
-            window.close();
-        });
-
-        document.getElementById('capture-screen').addEventListener('click', () => {
-            chrome.tabs.captureVisibleTab(null, {format: 'png'}, function(dataUrl) {
-                const link = document.createElement('a');
-                link.download = `certguard-capture-${Date.now()}.png`;
-                link.href = dataUrl;
-                link.click();
-            });
-            window.close();
-        });
-
-        // Toggles
-        document.querySelectorAll('.toggle').forEach(toggle => {
-            toggle.addEventListener('click', () => {
-                toggle.classList.toggle('active');
-            });
-        });
-    </script>
+    
+    <div class="notification" id="notification"></div>
+    
+    <script src="popup.js"></script>
 </body>
 </html>
 

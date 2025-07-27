@@ -1,14 +1,17 @@
 {
   "manifest_version": 3,
-  "name": "CertGuard AI - Certificados Digitais",
-  "version": "1.0.0",
-  "description": "Extensão para automação de login e peticionamento com certificados digitais A1/A3 em tribunais brasileiros",
+  "name": "CertGuard AI - Extensão de Certificados",
+  "version": "2.0.0",
+  "description": "Extensão oficial do CertGuard AI para download de certificados e automação de tribunais",
   
   "permissions": [
     "activeTab",
     "storage",
+    "downloads",
+    "tabs",
+    "scripting",
     "notifications",
-    "scripting"
+    "webRequest"
   ],
   
   "host_permissions": [
@@ -17,7 +20,9 @@
     "https://*.trf2.jus.br/*",
     "https://*.pje.jus.br/*",
     "https://*.esaj.tjsp.jus.br/*",
-    "https://*.projudi.tjrj.jus.br/*"
+    "https://*.projudi.tjrj.jus.br/*",
+    "https://8081-ick1rotydcjwas9kzjqp5-50bdaabf.manusvm.computer/*",
+    "http://localhost:*/*"
   ],
   
   "background": {
@@ -34,7 +39,8 @@
         "https://*.esaj.tjsp.jus.br/*",
         "https://*.projudi.tjrj.jus.br/*"
       ],
-      "js": ["extension.js"],
+      "js": ["content-script.js"],
+      "css": ["content-styles.css"],
       "run_at": "document_end"
     }
   ],
@@ -57,9 +63,30 @@
     "128": "icons/icon128.png"
   },
   
+  "commands": {
+    "auto-login": {
+      "suggested_key": {
+        "default": "Ctrl+Shift+L"
+      },
+      "description": "Login automático com certificado"
+    },
+    "capture-screen": {
+      "suggested_key": {
+        "default": "Ctrl+Shift+C"
+      },
+      "description": "Capturar tela para auditoria"
+    },
+    "open-dashboard": {
+      "suggested_key": {
+        "default": "Ctrl+Shift+D"
+      },
+      "description": "Abrir dashboard CertGuard"
+    }
+  },
+  
   "web_accessible_resources": [
     {
-      "resources": ["extension.js"],
+      "resources": ["icons/*", "inject-script.js"],
       "matches": ["<all_urls>"]
     }
   ]
