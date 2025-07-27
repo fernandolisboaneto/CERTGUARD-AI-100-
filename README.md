@@ -3,13 +3,13 @@
 <div align="center">
 
 ![CertGuard AI Logo](https://img.shields.io/badge/CertGuard-AI-blue?style=for-the-badge&logo=shield&logoColor=white)
-![Version](https://img.shields.io/badge/version-1.0.0-green?style=for-the-badge)
+![Version](https://img.shields.io/badge/version-2.0.0-green?style=for-the-badge)
 ![License](https://img.shields.io/badge/license-MIT-blue?style=for-the-badge)
-![Status](https://img.shields.io/badge/status-Production%20Ready-brightgreen?style=for-the-badge)
+![Status](https://img.shields.io/badge/status-100%25%20Funcional-brightgreen?style=for-the-badge)
 
 **Sistema completo de gestão de certificados digitais com IA, automação de tribunais e extensões para navegador**
 
-[🚀 Demo Live](https://8080-ick1rotydcjwas9kzjqp5-50bdaabf.manusvm.computer) • [📖 Documentação](./docs/) • [🔧 Instalação](#instalação) • [🤝 Contribuir](#contribuição)
+[🚀 Demo Live](https://8081-ick1rotydcjwas9kzjqp5-50bdaabf.manusvm.computer) • [📖 Documentação](./docs/) • [🔧 Instalação](#instalação) • [🤝 Contribuir](#contribuição)
 
 </div>
 
