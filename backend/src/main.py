@@ -30,6 +30,9 @@ from src.routes.certificate import certificate_bp
 from src.routes.organization import organization_bp
 from src.routes.lucia import lucia_bp
 from src.routes.blockchain import blockchain_bp
+from src.routes.nvidia_ai import register_nvidia_ai_routes
+from src.routes.blockchain_audit import register_blockchain_routes
+from src.routes.lucia_advanced import register_lucia_advanced_routes
 
 app = Flask(__name__, static_folder=os.path.join(os.path.dirname(__file__), 'static'))
 
@@ -48,6 +51,11 @@ app.register_blueprint(certificate_bp, url_prefix='/api/certificates')
 app.register_blueprint(organization_bp, url_prefix='/api/organizations')
 app.register_blueprint(lucia_bp, url_prefix='/api/lucia')
 app.register_blueprint(blockchain_bp, url_prefix='/api/blockchain')
+
+# Registrar rotas avançadas
+register_nvidia_ai_routes(app)
+register_blockchain_routes(app)
+register_lucia_advanced_routes(app)
 
 # Inicializar banco de dados
 db.init_app(app)
