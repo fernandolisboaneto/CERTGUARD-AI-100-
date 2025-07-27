@@ -12,8 +12,8 @@
         }
         
         body {
-            width: 380px;
-            min-height: 500px;
+            width: 320px;
+            min-height: 400px;
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             color: white;
@@ -22,21 +22,19 @@
         .header {
             padding: 20px;
             text-align: center;
-            background: rgba(255, 255, 255, 0.1);
-            backdrop-filter: blur(10px);
+            border-bottom: 1px solid rgba(255,255,255,0.1);
         }
         
         .logo {
             width: 48px;
             height: 48px;
-            background: white;
+            background: rgba(255,255,255,0.2);
             border-radius: 12px;
             margin: 0 auto 12px;
             display: flex;
             align-items: center;
             justify-content: center;
             font-size: 24px;
-            color: #667eea;
         }
         
         .title {
@@ -55,7 +53,7 @@
         }
         
         .status-card {
-            background: rgba(255, 255, 255, 0.15);
+            background: rgba(255,255,255,0.1);
             border-radius: 12px;
             padding: 16px;
             margin-bottom: 16px;
@@ -65,230 +63,191 @@
         .status-header {
             display: flex;
             align-items: center;
+            justify-content: space-between;
             margin-bottom: 12px;
-        }
-        
-        .status-icon {
-            width: 32px;
-            height: 32px;
-            border-radius: 8px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            margin-right: 12px;
-            font-size: 16px;
-        }
-        
-        .status-icon.success {
-            background: #10b981;
-        }
-        
-        .status-icon.warning {
-            background: #f59e0b;
-        }
-        
-        .status-icon.info {
-            background: #3b82f6;
-        }
-        
-        .status-text {
-            flex: 1;
         }
         
         .status-title {
             font-size: 14px;
-            font-weight: 600;
-            margin-bottom: 2px;
-        }
-        
-        .status-desc {
-            font-size: 12px;
-            opacity: 0.8;
-        }
-        
-        .certificates-section {
-            margin-bottom: 20px;
-        }
-        
-        .section-title {
-            font-size: 14px;
-            font-weight: 600;
-            margin-bottom: 12px;
-            display: flex;
-            align-items: center;
-        }
-        
-        .section-icon {
-            margin-right: 8px;
-        }
-        
-        .certificate-item {
-            background: rgba(255, 255, 255, 0.1);
-            border-radius: 8px;
-            padding: 12px;
-            margin-bottom: 8px;
-            cursor: pointer;
-            transition: all 0.2s;
-        }
-        
-        .certificate-item:hover {
-            background: rgba(255, 255, 255, 0.2);
-            transform: translateY(-1px);
-        }
-        
-        .cert-name {
-            font-size: 13px;
             font-weight: 500;
-            margin-bottom: 4px;
         }
         
-        .cert-details {
-            font-size: 11px;
-            opacity: 0.7;
-            display: flex;
-            justify-content: space-between;
+        .status-indicator {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: #4ade80;
+            animation: pulse 2s infinite;
         }
         
-        .actions {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 8px;
+        .status-indicator.offline {
+            background: #ef4444;
+        }
+        
+        .status-indicator.warning {
+            background: #f59e0b;
+        }
+        
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+        
+        .status-info {
+            font-size: 12px;
+            opacity: 0.9;
+            line-height: 1.4;
+        }
+        
+        .login-section {
             margin-bottom: 16px;
         }
         
-        .btn {
-            padding: 10px 12px;
-            border: none;
-            border-radius: 8px;
+        .input-group {
+            margin-bottom: 12px;
+        }
+        
+        .input-label {
+            display: block;
             font-size: 12px;
+            margin-bottom: 4px;
+            opacity: 0.9;
+        }
+        
+        .input-field {
+            width: 100%;
+            padding: 8px 12px;
+            border: 1px solid rgba(255,255,255,0.2);
+            border-radius: 6px;
+            background: rgba(255,255,255,0.1);
+            color: white;
+            font-size: 14px;
+            backdrop-filter: blur(10px);
+        }
+        
+        .input-field::placeholder {
+            color: rgba(255,255,255,0.6);
+        }
+        
+        .input-field:focus {
+            outline: none;
+            border-color: rgba(255,255,255,0.4);
+            background: rgba(255,255,255,0.15);
+        }
+        
+        .btn {
+            width: 100%;
+            padding: 10px;
+            border: none;
+            border-radius: 6px;
+            font-size: 14px;
             font-weight: 500;
             cursor: pointer;
             transition: all 0.2s;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 6px;
+            margin-bottom: 8px;
         }
         
         .btn-primary {
-            background: white;
-            color: #667eea;
+            background: rgba(255,255,255,0.2);
+            color: white;
+            border: 1px solid rgba(255,255,255,0.3);
         }
         
         .btn-primary:hover {
-            background: #f8fafc;
+            background: rgba(255,255,255,0.3);
             transform: translateY(-1px);
         }
         
         .btn-secondary {
-            background: rgba(255, 255, 255, 0.2);
-            color: white;
+            background: transparent;
+            color: rgba(255,255,255,0.8);
+            border: 1px solid rgba(255,255,255,0.2);
+            font-size: 12px;
+            padding: 8px;
         }
         
         .btn-secondary:hover {
-            background: rgba(255, 255, 255, 0.3);
+            background: rgba(255,255,255,0.1);
         }
         
-        .settings {
-            border-top: 1px solid rgba(255, 255, 255, 0.2);
-            padding-top: 16px;
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
         }
         
-        .setting-item {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            margin-bottom: 12px;
-        }
-        
-        .setting-label {
-            font-size: 12px;
-            opacity: 0.9;
-        }
-        
-        .toggle {
-            width: 40px;
-            height: 20px;
-            background: rgba(255, 255, 255, 0.3);
-            border-radius: 10px;
-            position: relative;
-            cursor: pointer;
-            transition: background 0.2s;
-        }
-        
-        .toggle.active {
-            background: #10b981;
-        }
-        
-        .toggle-slider {
-            width: 16px;
-            height: 16px;
-            background: white;
-            border-radius: 50%;
-            position: absolute;
-            top: 2px;
-            left: 2px;
-            transition: transform 0.2s;
-        }
-        
-        .toggle.active .toggle-slider {
-            transform: translateX(20px);
-        }
-        
-        .footer {
+        .site-info {
+            font-size: 11px;
+            opacity: 0.7;
             text-align: center;
-            padding: 16px;
-            border-top: 1px solid rgba(255, 255, 255, 0.2);
+            margin-top: 16px;
+            padding-top: 16px;
+            border-top: 1px solid rgba(255,255,255,0.1);
         }
         
-        .footer-link {
-            color: white;
-            text-decoration: none;
-            font-size: 12px;
-            opacity: 0.8;
-            margin: 0 8px;
-        }
-        
-        .footer-link:hover {
-            opacity: 1;
+        .hidden {
+            display: none;
         }
         
         .loading {
-            display: none;
-            text-align: center;
-            padding: 20px;
-        }
-        
-        .spinner {
-            width: 24px;
-            height: 24px;
-            border: 2px solid rgba(255, 255, 255, 0.3);
-            border-top: 2px solid white;
+            display: inline-block;
+            width: 16px;
+            height: 16px;
+            border: 2px solid rgba(255,255,255,0.3);
             border-radius: 50%;
-            animation: spin 1s linear infinite;
-            margin: 0 auto 12px;
+            border-top-color: white;
+            animation: spin 1s ease-in-out infinite;
         }
         
         @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
+            to { transform: rotate(360deg); }
         }
         
-        .notification {
-            position: fixed;
-            top: 10px;
-            right: 10px;
-            background: #10b981;
-            color: white;
-            padding: 8px 12px;
-            border-radius: 6px;
+        .certificate-info {
+            background: rgba(255,255,255,0.05);
+            border-radius: 8px;
+            padding: 12px;
+            margin-top: 12px;
+        }
+        
+        .cert-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 4px 0;
             font-size: 12px;
-            transform: translateX(100%);
-            transition: transform 0.3s;
         }
         
-        .notification.show {
-            transform: translateX(0);
+        .cert-label {
+            opacity: 0.8;
+        }
+        
+        .cert-value {
+            font-weight: 500;
+        }
+        
+        .actions {
+            margin-top: 16px;
+        }
+        
+        .action-btn {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            padding: 8px 12px;
+            background: rgba(255,255,255,0.1);
+            border: 1px solid rgba(255,255,255,0.2);
+            border-radius: 6px;
+            color: white;
+            text-decoration: none;
+            font-size: 12px;
+            margin-bottom: 8px;
+            transition: all 0.2s;
+        }
+        
+        .action-btn:hover {
+            background: rgba(255,255,255,0.2);
+            transform: translateY(-1px);
         }
     </style>
 </head>
@@ -296,81 +255,90 @@
     <div class="header">
         <div class="logo">🛡️</div>
         <div class="title">CertGuard AI</div>
-        <div class="subtitle">Extensão de Certificados</div>
+        <div class="subtitle">Autenticação Segura</div>
     </div>
     
     <div class="content">
-        <!-- Status do Site -->
-        <div class="status-card">
-            <div class="status-header">
-                <div class="status-icon info" id="siteStatusIcon">🌐</div>
-                <div class="status-text">
-                    <div class="status-title" id="siteStatusTitle">Detectando site...</div>
-                    <div class="status-desc" id="siteStatusDesc">Verificando tribunal</div>
+        <!-- Seção de Login -->
+        <div id="loginSection" class="login-section">
+            <div class="input-group">
+                <label class="input-label">Usuário</label>
+                <input type="text" id="username" class="input-field" placeholder="Digite seu usuário">
+            </div>
+            <div class="input-group">
+                <label class="input-label">Senha</label>
+                <input type="password" id="password" class="input-field" placeholder="Digite sua senha">
+            </div>
+            <button id="loginBtn" class="btn btn-primary">Conectar</button>
+            <button id="dashboardBtn" class="btn btn-secondary">Abrir Dashboard</button>
+        </div>
+        
+        <!-- Seção Logado -->
+        <div id="loggedSection" class="hidden">
+            <div class="status-card">
+                <div class="status-header">
+                    <span class="status-title">Status da Conexão</span>
+                    <div id="connectionStatus" class="status-indicator"></div>
                 </div>
+                <div id="statusInfo" class="status-info">
+                    Conectando ao backend LucIA...
+                </div>
+            </div>
+            
+            <div class="status-card">
+                <div class="status-header">
+                    <span class="status-title">Site Atual</span>
+                    <div id="siteStatus" class="status-indicator offline"></div>
+                </div>
+                <div id="siteInfo" class="status-info">
+                    Site não homologado
+                </div>
+            </div>
+            
+            <div id="certificateSection" class="hidden">
+                <div class="status-card">
+                    <div class="status-header">
+                        <span class="status-title">Certificado Ativo</span>
+                        <div id="certStatus" class="status-indicator"></div>
+                    </div>
+                    <div class="certificate-info">
+                        <div class="cert-item">
+                            <span class="cert-label">Tipo:</span>
+                            <span id="certType" class="cert-value">-</span>
+                        </div>
+                        <div class="cert-item">
+                            <span class="cert-label">Titular:</span>
+                            <span id="certOwner" class="cert-value">-</span>
+                        </div>
+                        <div class="cert-item">
+                            <span class="cert-label">Validade:</span>
+                            <span id="certExpiry" class="cert-value">-</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="actions">
+                <button id="authenticateBtn" class="btn btn-primary" disabled>
+                    <span id="authBtnText">Aguardando site homologado...</span>
+                    <div id="authLoading" class="loading hidden"></div>
+                </button>
+                
+                <a href="#" id="dashboardLink" class="action-btn">
+                    📊 Dashboard CertGuard
+                </a>
+                
+                <button id="logoutBtn" class="btn btn-secondary">Desconectar</button>
             </div>
         </div>
         
-        <!-- Certificados Disponíveis -->
-        <div class="certificates-section">
-            <div class="section-title">
-                <span class="section-icon">📜</span>
-                Certificados Disponíveis
-            </div>
-            <div id="certificatesList">
-                <div class="loading" id="loadingCerts">
-                    <div class="spinner"></div>
-                    <div>Carregando certificados...</div>
-                </div>
-            </div>
-        </div>
-        
-        <!-- Ações Rápidas -->
-        <div class="actions">
-            <button class="btn btn-primary" id="autoLoginBtn">
-                🔐 Auto Login
-            </button>
-            <button class="btn btn-secondary" id="captureBtn">
-                📸 Capturar
-            </button>
-            <button class="btn btn-secondary" id="dashboardBtn">
-                📊 Dashboard
-            </button>
-            <button class="btn btn-secondary" id="downloadBtn">
-                📥 Downloads
-            </button>
-        </div>
-        
-        <!-- Configurações -->
-        <div class="settings">
-            <div class="setting-item">
-                <span class="setting-label">Auto Login</span>
-                <div class="toggle" id="autoLoginToggle">
-                    <div class="toggle-slider"></div>
-                </div>
-            </div>
-            <div class="setting-item">
-                <span class="setting-label">Captura Automática</span>
-                <div class="toggle" id="autoCaptureToggle">
-                    <div class="toggle-slider"></div>
-                </div>
-            </div>
-            <div class="setting-item">
-                <span class="setting-label">Notificações</span>
-                <div class="toggle active" id="notificationsToggle">
-                    <div class="toggle-slider"></div>
-                </div>
+        <div class="site-info">
+            <div id="currentUrl">Detectando site...</div>
+            <div style="margin-top: 4px; font-size: 10px;">
+                v1.0.0 | Seguro & Stateless
             </div>
         </div>
     </div>
-    
-    <div class="footer">
-        <a href="#" class="footer-link" id="helpLink">Ajuda</a>
-        <a href="#" class="footer-link" id="configLink">Configurar</a>
-        <a href="#" class="footer-link" id="aboutLink">Sobre</a>
-    </div>
-    
-    <div class="notification" id="notification"></div>
     
     <script src="popup.js"></script>
 </body>

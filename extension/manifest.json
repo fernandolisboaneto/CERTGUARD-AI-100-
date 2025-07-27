@@ -1,47 +1,45 @@
 {
   "manifest_version": 3,
-  "name": "CertGuard AI - Extensão de Certificados",
-  "version": "2.0.0",
-  "description": "Extensão oficial do CertGuard AI para download de certificados e automação de tribunais",
+  "name": "CertGuard AI - Autenticação Segura",
+  "version": "1.0.0",
+  "description": "Extensão segura para autenticação com certificados digitais A1/A3 via backend LucIA",
   
   "permissions": [
     "activeTab",
     "storage",
-    "downloads",
-    "tabs",
-    "scripting",
-    "notifications",
-    "webRequest"
+    "nativeMessaging",
+    "background",
+    "scripting"
   ],
   
   "host_permissions": [
-    "https://*.tjrj.jus.br/*",
-    "https://*.tjsp.jus.br/*",
-    "https://*.trf2.jus.br/*",
-    "https://*.pje.jus.br/*",
-    "https://*.esaj.tjsp.jus.br/*",
-    "https://*.projudi.tjrj.jus.br/*",
-    "https://8081-ick1rotydcjwas9kzjqp5-50bdaabf.manusvm.computer/*",
-    "http://localhost:*/*"
+    "https://tjrj.jus.br/*",
+    "https://tjsp.jus.br/*",
+    "https://trf2.jus.br/*",
+    "https://pje.jus.br/*",
+    "https://esaj.tjsp.jus.br/*",
+    "https://projudi.tjrj.jus.br/*",
+    "https://certguard.ai/*",
+    "https://*.manusvm.computer/*"
   ],
   
   "background": {
-    "service_worker": "background.js"
+    "service_worker": "background.js",
+    "type": "module"
   },
   
   "content_scripts": [
     {
       "matches": [
-        "https://*.tjrj.jus.br/*",
-        "https://*.tjsp.jus.br/*",
-        "https://*.trf2.jus.br/*",
-        "https://*.pje.jus.br/*",
-        "https://*.esaj.tjsp.jus.br/*",
-        "https://*.projudi.tjrj.jus.br/*"
+        "https://tjrj.jus.br/*",
+        "https://tjsp.jus.br/*",
+        "https://trf2.jus.br/*",
+        "https://pje.jus.br/*",
+        "https://esaj.tjsp.jus.br/*",
+        "https://projudi.tjrj.jus.br/*"
       ],
       "js": ["content-script.js"],
-      "css": ["content-styles.css"],
-      "run_at": "document_end"
+      "run_at": "document_start"
     }
   ],
   
@@ -63,32 +61,22 @@
     "128": "icons/icon128.png"
   },
   
-  "commands": {
-    "auto-login": {
-      "suggested_key": {
-        "default": "Ctrl+Shift+L"
-      },
-      "description": "Login automático com certificado"
-    },
-    "capture-screen": {
-      "suggested_key": {
-        "default": "Ctrl+Shift+C"
-      },
-      "description": "Capturar tela para auditoria"
-    },
-    "open-dashboard": {
-      "suggested_key": {
-        "default": "Ctrl+Shift+D"
-      },
-      "description": "Abrir dashboard CertGuard"
-    }
-  },
-  
   "web_accessible_resources": [
     {
-      "resources": ["icons/*", "inject-script.js"],
+      "resources": ["inject.js"],
       "matches": ["<all_urls>"]
     }
-  ]
+  ],
+  
+  "externally_connectable": {
+    "matches": [
+      "https://certguard.ai/*",
+      "https://*.manusvm.computer/*"
+    ]
+  },
+  
+  "content_security_policy": {
+    "extension_pages": "script-src 'self'; object-src 'self'"
+  }
 }
 

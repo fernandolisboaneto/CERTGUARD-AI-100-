@@ -1,465 +1,292 @@
-// Popup JavaScript para CertGuard AI Extension
+/**
+ * CertGuard AI Extension - Popup Logic
+ * Extensão segura e stateless para autenticação com certificados digitais
+ */
 
 class CertGuardPopup {
     constructor() {
-        this.apiBase = 'https://8081-ick1rotydcjwas9kzjqp5-50bdaabf.manusvm.computer';
-        this.certificates = [];
-        this.currentSite = null;
-        this.settings = {
-            autoLogin: false,
-            autoCapture: false,
-            notifications: true
-        };
+        this.apiBase = 'https://8081-ick1rotydcjwas9kzjqp5-50bdaabf.manusvm.computer/api';
+        this.dashboardUrl = 'https://8081-ick1rotydcjwas9kzjqp5-50bdaabf.manusvm.computer';
+        this.currentTab = null;
+        this.authToken = null;
+        this.userInfo = null;
+        this.siteInfo = null;
         
         this.init();
     }
     
     async init() {
-        await this.loadSettings();
-        await this.detectCurrentSite();
-        await this.loadCertificates();
+        console.log('🚀 CertGuard AI Extension iniciada');
+        
+        // Verificar se já está logado
+        await this.checkAuthStatus();
+        
+        // Obter informações da aba atual
+        await this.getCurrentTab();
+        
+        // Configurar event listeners
         this.setupEventListeners();
+        
+        // Atualizar interface
         this.updateUI();
+        
+        // Verificar site atual
+        this.checkCurrentSite();
     }
     
-    async loadSettings() {
+    async checkAuthStatus() {
         try {
-            const result = await chrome.storage.sync.get(['certguard_settings']);
-            if (result.certguard_settings) {
-                this.settings = { ...this.settings, ...result.certguard_settings };
+            const result = await chrome.storage.local.get(['authToken', 'userInfo']);
+            
+            if (result.authToken && result.userInfo) {
+                this.authToken = result.authToken;
+                this.userInfo = result.userInfo;
+                
+                // Verificar se token ainda é válido
+                const isValid = await this.validateToken();
+                if (isValid) {
+                    this.showLoggedSection();
+                } else {
+                    await this.logout();
+                }
+            } else {
+                this.showLoginSection();
             }
         } catch (error) {
-            console.error('Erro ao carregar configurações:', error);
+            console.error('❌ Erro ao verificar status de autenticação:', error);
+            this.showLoginSection();
         }
     }
     
-    async saveSettings() {
+    async validateToken() {
         try {
-            await chrome.storage.sync.set({ certguard_settings: this.settings });
+            const response = await fetch(`${this.apiBase}/auth/validate`, {
+                method: 'POST',
+                headers: {
+                    'Authorization': `Bearer ${this.authToken}`,
+                    'Content-Type': 'application/json'
+                }
+            });
+            
+            return response.ok;
         } catch (error) {
-            console.error('Erro ao salvar configurações:', error);
+            console.error('❌ Erro ao validar token:', error);
+            return false;
         }
     }
     
-    async detectCurrentSite() {
+    async getCurrentTab() {
         try {
             const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
-            const url = tab.url;
+            this.currentTab = tab;
             
-            const tribunals = {
-                'tjrj.jus.br': { name: 'TJ-RJ', fullName: 'Tribunal de Justiça do Rio de Janeiro' },
-                'tjsp.jus.br': { name: 'TJSP', fullName: 'Tribunal de Justiça de São Paulo' },
-                'trf2.jus.br': { name: 'TRF-2', fullName: 'Tribunal Regional Federal da 2ª Região' },
-                'pje.jus.br': { name: 'PJe', fullName: 'Processo Judicial Eletrônico' },
-                'esaj.tjsp.jus.br': { name: 'E-SAJ', fullName: 'Sistema de Automação da Justiça' },
-                'projudi.tjrj.jus.br': { name: 'PROJUDI', fullName: 'Processo Judicial Digital' }
-            };
-            
-            for (const [domain, info] of Object.entries(tribunals)) {
-                if (url.includes(domain)) {
-                    this.currentSite = {
-                        domain,
-                        ...info,
-                        url,
-                        detected: true
-                    };
-                    break;
-                }
-            }
-            
-            if (!this.currentSite) {
-                this.currentSite = {
-                    name: 'Site Não Reconhecido',
-                    fullName: 'Site não é um tribunal conhecido',
-                    detected: false
-                };
+            // Atualizar URL atual na interface
+            const urlElement = document.getElementById('currentUrl');
+            if (urlElement && tab.url) {
+                const url = new URL(tab.url);
+                urlElement.textContent = url.hostname;
             }
         } catch (error) {
-            console.error('Erro ao detectar site:', error);
-            this.currentSite = {
-                name: 'Erro',
-                fullName: 'Erro ao detectar site atual',
-                detected: false
-            };
-        }
-    }
-    
-    async loadCertificates() {
-        const loadingElement = document.getElementById('loadingCerts');
-        loadingElement.style.display = 'block';
-        
-        try {
-            // Simular certificados disponíveis (em produção, buscar da API)
-            await new Promise(resolve => setTimeout(resolve, 1000));
-            
-            this.certificates = [
-                {
-                    id: 'cert_001',
-                    name: 'João Silva - Advogado',
-                    type: 'A1',
-                    organization: 'OAB-RJ',
-                    validUntil: '2025-12-31',
-                    size: '2.1 MB'
-                },
-                {
-                    id: 'cert_002',
-                    name: 'Maria Santos - Empresa',
-                    type: 'A3',
-                    organization: 'Santos & Associados',
-                    validUntil: '2026-06-15',
-                    size: '1.8 MB'
-                },
-                {
-                    id: 'cert_003',
-                    name: 'Carlos Pereira - PF',
-                    type: 'A1',
-                    organization: 'Pessoa Física',
-                    validUntil: '2025-09-20',
-                    size: '1.9 MB'
-                }
-            ];
-            
-            this.displayCertificates();
-            
-        } catch (error) {
-            console.error('Erro ao carregar certificados:', error);
-            this.showError('Erro ao carregar certificados');
-        } finally {
-            loadingElement.style.display = 'none';
-        }
-    }
-    
-    displayCertificates() {
-        const container = document.getElementById('certificatesList');
-        const loadingElement = document.getElementById('loadingCerts');
-        
-        // Remover loading se ainda estiver visível
-        if (loadingElement) {
-            loadingElement.style.display = 'none';
-        }
-        
-        if (this.certificates.length === 0) {
-            container.innerHTML = `
-                <div style="text-align: center; padding: 20px; opacity: 0.7;">
-                    <div style="font-size: 24px; margin-bottom: 8px;">📭</div>
-                    <div style="font-size: 12px;">Nenhum certificado disponível</div>
-                </div>
-            `;
-            return;
-        }
-        
-        container.innerHTML = this.certificates.map(cert => `
-            <div class="certificate-item" data-cert-id="${cert.id}">
-                <div class="cert-name">${cert.name}</div>
-                <div class="cert-details">
-                    <span>${cert.type} • ${cert.organization}</span>
-                    <span>${cert.size}</span>
-                </div>
-            </div>
-        `).join('');
-        
-        // Adicionar event listeners para certificados
-        container.querySelectorAll('.certificate-item').forEach(item => {
-            item.addEventListener('click', () => {
-                const certId = item.dataset.certId;
-                this.downloadCertificate(certId);
-            });
-        });
-    }
-    
-    async downloadCertificate(certId) {
-        const cert = this.certificates.find(c => c.id === certId);
-        if (!cert) return;
-        
-        try {
-            this.showNotification(`Baixando ${cert.name}...`);
-            
-            // Simular download (em produção, usar API real)
-            await new Promise(resolve => setTimeout(resolve, 2000));
-            
-            // Usar Chrome Downloads API
-            const downloadUrl = `${this.apiBase}/api/certificates/download/${certId}`;
-            
-            await chrome.downloads.download({
-                url: downloadUrl,
-                filename: `${cert.name.replace(/[^a-zA-Z0-9]/g, '_')}_${cert.type}.pfx`,
-                saveAs: true
-            });
-            
-            this.showNotification(`${cert.name} baixado com sucesso!`);
-            
-            // Registrar evento de download
-            this.logSecurityEvent('certificate_download', {
-                certificate_id: certId,
-                certificate_name: cert.name
-            });
-            
-        } catch (error) {
-            console.error('Erro ao baixar certificado:', error);
-            this.showNotification('Erro ao baixar certificado', 'error');
+            console.error('❌ Erro ao obter aba atual:', error);
         }
     }
     
     setupEventListeners() {
-        // Botões de ação
-        document.getElementById('autoLoginBtn').addEventListener('click', () => {
-            this.performAutoLogin();
+        // Login
+        document.getElementById('loginBtn').addEventListener('click', () => this.login());
+        document.getElementById('username').addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') this.login();
+        });
+        document.getElementById('password').addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') this.login();
         });
         
-        document.getElementById('captureBtn').addEventListener('click', () => {
-            this.captureScreen();
-        });
+        // Dashboard
+        document.getElementById('dashboardBtn').addEventListener('click', () => this.openDashboard());
+        document.getElementById('dashboardLink').addEventListener('click', () => this.openDashboard());
         
-        document.getElementById('dashboardBtn').addEventListener('click', () => {
-            this.openDashboard();
-        });
+        // Autenticação
+        document.getElementById('authenticateBtn').addEventListener('click', () => this.authenticate());
         
-        document.getElementById('downloadBtn').addEventListener('click', () => {
-            this.openDownloads();
-        });
-        
-        // Toggles de configuração
-        document.getElementById('autoLoginToggle').addEventListener('click', () => {
-            this.toggleSetting('autoLogin');
-        });
-        
-        document.getElementById('autoCaptureToggle').addEventListener('click', () => {
-            this.toggleSetting('autoCapture');
-        });
-        
-        document.getElementById('notificationsToggle').addEventListener('click', () => {
-            this.toggleSetting('notifications');
-        });
-        
-        // Links do footer
-        document.getElementById('helpLink').addEventListener('click', (e) => {
-            e.preventDefault();
-            this.openHelp();
-        });
-        
-        document.getElementById('configLink').addEventListener('click', (e) => {
-            e.preventDefault();
-            this.openConfig();
-        });
-        
-        document.getElementById('aboutLink').addEventListener('click', (e) => {
-            e.preventDefault();
-            this.openAbout();
-        });
+        // Logout
+        document.getElementById('logoutBtn').addEventListener('click', () => this.logout());
     }
     
-    updateUI() {
-        // Atualizar status do site
-        const statusIcon = document.getElementById('siteStatusIcon');
-        const statusTitle = document.getElementById('siteStatusTitle');
-        const statusDesc = document.getElementById('siteStatusDesc');
+    async login() {
+        const username = document.getElementById('username').value.trim();
+        const password = document.getElementById('password').value.trim();
         
-        if (this.currentSite.detected) {
-            statusIcon.textContent = '✅';
-            statusIcon.className = 'status-icon success';
-            statusTitle.textContent = this.currentSite.name;
-            statusDesc.textContent = this.currentSite.fullName;
-        } else {
-            statusIcon.textContent = '⚠️';
-            statusIcon.className = 'status-icon warning';
-            statusTitle.textContent = this.currentSite.name;
-            statusDesc.textContent = this.currentSite.fullName;
+        if (!username || !password) {
+            this.showError('Por favor, preencha usuário e senha');
+            return;
         }
         
-        // Atualizar toggles
-        this.updateToggle('autoLoginToggle', this.settings.autoLogin);
-        this.updateToggle('autoCaptureToggle', this.settings.autoCapture);
-        this.updateToggle('notificationsToggle', this.settings.notifications);
-    }
-    
-    updateToggle(toggleId, active) {
-        const toggle = document.getElementById(toggleId);
-        if (active) {
-            toggle.classList.add('active');
-        } else {
-            toggle.classList.remove('active');
+        const loginBtn = document.getElementById('loginBtn');
+        const originalText = loginBtn.textContent;
+        
+        try {
+            loginBtn.textContent = 'Conectando...';
+            loginBtn.disabled = true;
+            
+            // Simular login (em produção, fazer requisição real)
+            await this.delay(1000);
+            
+            if (username === 'admin' && password === 'admin123') {
+                // Login bem-sucedido
+                this.authToken = this.generateJWT();
+                this.userInfo = {
+                    id: 'user-001',
+                    username: username,
+                    name: 'Administrador',
+                    role: 'admin',
+                    loginTime: new Date().toISOString()
+                };
+                
+                // Salvar no storage
+                await chrome.storage.local.set({
+                    authToken: this.authToken,
+                    userInfo: this.userInfo
+                });
+                
+                this.showLoggedSection();
+                this.updateConnectionStatus('online', 'Conectado ao backend LucIA');
+                
+                // Verificar site atual após login
+                this.checkCurrentSite();
+                
+            } else {
+                throw new Error('Credenciais inválidas');
+            }
+            
+        } catch (error) {
+            console.error('❌ Erro no login:', error);
+            this.showError('Erro ao fazer login: ' + error.message);
+        } finally {
+            loginBtn.textContent = originalText;
+            loginBtn.disabled = false;
         }
     }
     
-    toggleSetting(setting) {
-        this.settings[setting] = !this.settings[setting];
-        this.updateToggle(setting + 'Toggle', this.settings[setting]);
-        this.saveSettings();
-        
-        this.showNotification(`${setting} ${this.settings[setting] ? 'ativado' : 'desativado'}`);
+    async logout() {
+        try {
+            // Limpar storage
+            await chrome.storage.local.clear();
+            
+            // Resetar estado
+            this.authToken = null;
+            this.userInfo = null;
+            this.siteInfo = null;
+            
+            // Mostrar tela de login
+            this.showLoginSection();
+            
+            // Limpar campos
+            document.getElementById('username').value = '';
+            document.getElementById('password').value = '';
+            
+        } catch (error) {
+            console.error('❌ Erro no logout:', error);
+        }
     }
     
-    async performAutoLogin() {
-        if (!this.currentSite.detected) {
-            this.showNotification('Site não suportado para auto login', 'error');
+    async checkCurrentSite() {
+        if (!this.currentTab || !this.currentTab.url) {
+            this.updateSiteStatus('offline', 'Nenhuma aba ativa');
             return;
         }
         
         try {
-            this.showNotification('Iniciando auto login...');
+            const url = new URL(this.currentTab.url);
+            const hostname = url.hostname.toLowerCase();
             
-            // Enviar mensagem para content script
-            const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
+            // Lista de sites homologados
+            const homologatedSites = [
+                'tjrj.jus.br',
+                'tjsp.jus.br',
+                'trf2.jus.br',
+                'pje.jus.br',
+                'esaj.tjsp.jus.br',
+                'projudi.tjrj.jus.br'
+            ];
             
-            await chrome.tabs.sendMessage(tab.id, {
-                action: 'autoLogin',
-                site: this.currentSite,
-                certificates: this.certificates
-            });
+            const isHomologated = homologatedSites.some(site => hostname.includes(site));
             
-            this.logSecurityEvent('auto_login_attempt', {
-                site: this.currentSite.name,
-                url: this.currentSite.url
-            });
+            if (isHomologated) {
+                this.siteInfo = {
+                    hostname: hostname,
+                    isHomologated: true,
+                    tribunal: this.getTribunalName(hostname),
+                    detectedAt: new Date().toISOString()
+                };
+                
+                this.updateSiteStatus('online', `Tribunal detectado: ${this.siteInfo.tribunal}`);
+                this.enableAuthentication();
+                
+                // Notificar background script
+                chrome.runtime.sendMessage({
+                    action: 'siteDetected',
+                    siteInfo: this.siteInfo
+                });
+                
+            } else {
+                this.siteInfo = {
+                    hostname: hostname,
+                    isHomologated: false,
+                    detectedAt: new Date().toISOString()
+                };
+                
+                this.updateSiteStatus('offline', 'Site não homologado');
+                this.disableAuthentication();
+            }
             
         } catch (error) {
-            console.error('Erro no auto login:', error);
-            this.showNotification('Erro no auto login', 'error');
+            console.error('❌ Erro ao verificar site:', error);
+            this.updateSiteStatus('warning', 'Erro ao verificar site');
         }
     }
     
-    async captureScreen() {
-        try {
-            this.showNotification('Capturando tela...');
-            
-            const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
-            
-            // Capturar screenshot
-            const dataUrl = await chrome.tabs.captureVisibleTab(tab.windowId, {
-                format: 'png',
-                quality: 90
-            });
-            
-            // Download da captura
-            const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
-            const filename = `CertGuard_Capture_${timestamp}.png`;
-            
-            await chrome.downloads.download({
-                url: dataUrl,
-                filename: filename,
-                saveAs: false
-            });
-            
-            this.showNotification('Tela capturada com sucesso!');
-            
-            this.logSecurityEvent('screen_capture', {
-                site: this.currentSite.name,
-                filename: filename
-            });
-            
-        } catch (error) {
-            console.error('Erro ao capturar tela:', error);
-            this.showNotification('Erro ao capturar tela', 'error');
-        }
-    }
-    
-    openDashboard() {
-        chrome.tabs.create({
-            url: this.apiBase
-        });
-    }
-    
-    openDownloads() {
-        chrome.tabs.create({
-            url: 'chrome://downloads/'
-        });
-    }
-    
-    openHelp() {
-        chrome.tabs.create({
-            url: `${this.apiBase}/help`
-        });
-    }
-    
-    openConfig() {
-        chrome.tabs.create({
-            url: `${this.apiBase}/config`
-        });
-    }
-    
-    openAbout() {
-        this.showNotification('CertGuard AI v2.0.0 - Extensão Oficial');
-    }
-    
-    showNotification(message, type = 'success') {
-        const notification = document.getElementById('notification');
-        notification.textContent = message;
-        notification.className = `notification ${type}`;
-        notification.classList.add('show');
+    getTribunalName(hostname) {
+        const tribunals = {
+            'tjrj.jus.br': 'TJ-RJ',
+            'tjsp.jus.br': 'TJSP',
+            'trf2.jus.br': 'TRF-2',
+            'pje.jus.br': 'PJe',
+            'esaj.tjsp.jus.br': 'E-SAJ',
+            'projudi.tjrj.jus.br': 'PROJUDI'
+        };
         
-        setTimeout(() => {
-            notification.classList.remove('show');
-        }, 3000);
+        for (const [domain, name] of Object.entries(tribunals)) {
+            if (hostname.includes(domain)) {
+                return name;
+            }
+        }
         
-        // Notificação do sistema se habilitada
-        if (this.settings.notifications) {
-            chrome.notifications.create({
-                type: 'basic',
-                iconUrl: 'icons/icon48.png',
-                title: 'CertGuard AI',
-                message: message
-            });
+        return 'Tribunal';
+    }
+    
+    async authenticate() {
+        if (!this.siteInfo || !this.siteInfo.isHomologated) {
+            this.showError('Site não homologado para autenticação');
+            return;
         }
-    }
-    
-    showError(message) {
-        this.showNotification(message, 'error');
-    }
-    
-    async logSecurityEvent(eventType, details = {}) {
+        
+        const authBtn = document.getElementById('authenticateBtn');
+        const authBtnText = document.getElementById('authBtnText');
+        const authLoading = document.getElementById('authLoading');
+        
         try {
-            const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
+            authBtn.disabled = true;
+            authBtnText.textContent = 'Autenticando...';
+            authLoading.classList.remove('hidden');
             
-            // Obter IP (simulado)
-            const ipAddress = '192.168.1.100'; // Em produção, obter IP real
-            
-            const eventData = {
-                user_id: 'extension_user',
-                event_type: eventType,
-                ip_address: ipAddress,
-                details: {
-                    ...details,
-                    url: tab.url,
-                    timestamp: new Date().toISOString(),
-                    user_agent: navigator.userAgent
-                }
-            };
-            
-            // Enviar para API (em produção)
-            // await fetch(`${this.apiBase}/api/lucia/security-event`, {
-            //     method: 'POST',
-            //     headers: { 'Content-Type': 'application/json' },
-            //     body: JSON.stringify(eventData)
-            // });
-            
-            console.log('Security event logged:', eventData);
-            
-        } catch (error) {
-            console.error('Erro ao registrar evento de segurança:', error);
-        }
-    }
-}
-
-// Inicializar popup quando DOM estiver pronto
-document.addEventListener('DOMContentLoaded', () => {
-    new CertGuardPopup();
-});
-
-// Escutar mensagens do background script
-chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
-    if (message.action === 'updateCertificates') {
-        // Recarregar certificados
-        window.location.reload();
-    }
-    
-    if (message.action === 'showNotification') {
-        // Mostrar notificação
-        const popup = window.certguardPopup;
-        if (popup) {
-            popup.showNotification(message.message, message.type);
-        }
-    }
-    
-    sendResponse({ success: true });
-});
+            // Preparar dados para o backend
+            const authData = {
+                userId: this.userInfo.id,
+                siteUrl: this.currentTab.url,
+                hostname: this.siteInfo.hostname,
+                tribunal: this.siteInfo.tribunal,
+                timestamp: new Date().toISOString(),
+                userAgent: navigator.userAgent,
+                // Geolocalização seria obtida aqui em produção
+                location: { lat: -22.9068, lng: -43.1729 } // Rio de Janeiro (exemplo)\n            };\n            \n            // Simular requisição ao backend\n            await this.delay(2000);\n            \n            // Simular resposta do backend\n            const response = {\n                success: true,\n                certificateType: 'A1', // ou 'A3'\n                certificateInfo: {\n                    type: 'A1',\n                    owner: 'João Silva',\n                    expiry: '2025-12-31',\n                    serial: 'CG123456789'\n                },\n                authMethod: 'hsm', // ou 'daemon'\n                sessionId: 'sess-' + Date.now()\n            };\n            \n            if (response.success) {\n                // Mostrar informações do certificado\n                this.showCertificateInfo(response.certificateInfo);\n                \n                // Executar autenticação baseada no tipo\n                if (response.certificateType === 'A1') {\n                    await this.authenticateA1(response);\n                } else {\n                    await this.authenticateA3(response);\n                }\n                \n                authBtnText.textContent = 'Autenticado com sucesso!';\n                \n                // Resetar após 3 segundos\n                setTimeout(() => {\n                    authBtnText.textContent = 'Autenticar no Site';\n                    authBtn.disabled = false;\n                }, 3000);\n                \n            } else {\n                throw new Error('Falha na autenticação');\n            }\n            \n        } catch (error) {\n            console.error('❌ Erro na autenticação:', error);\n            this.showError('Erro na autenticação: ' + error.message);\n            authBtnText.textContent = 'Tentar Novamente';\n            authBtn.disabled = false;\n        } finally {\n            authLoading.classList.add('hidden');\n        }\n    }\n    \n    async authenticateA1(response) {\n        console.log('🔐 Autenticação A1 via HSM');\n        \n        // Em produção, o backend faria a assinatura via HSM\n        // Aqui apenas simulamos o processo\n        \n        // Enviar comando para content script\n        chrome.tabs.sendMessage(this.currentTab.id, {\n            action: 'injectCertificate',\n            certificateData: response.certificateInfo,\n            authMethod: 'A1',\n            sessionId: response.sessionId\n        });\n    }\n    \n    async authenticateA3(response) {\n        console.log('🔐 Autenticação A3 via Daemon Local');\n        \n        // Em produção, iniciaria o daemon local via nativeMessaging\n        try {\n            // Simular comunicação com daemon local\n            const daemonResponse = await this.communicateWithDaemon({\n                action: 'authenticate',\n                siteUrl: this.currentTab.url,\n                certificateSerial: response.certificateInfo.serial\n            });\n            \n            if (daemonResponse.success) {\n                // Enviar resultado para content script\n                chrome.tabs.sendMessage(this.currentTab.id, {\n                    action: 'injectCertificate',\n                    certificateData: response.certificateInfo,\n                    authMethod: 'A3',\n                    sessionId: response.sessionId,\n                    signature: daemonResponse.signature\n                });\n            }\n            \n        } catch (error) {\n            console.error('❌ Erro na comunicação com daemon:', error);\n            throw error;\n        }\n    }\n    \n    async communicateWithDaemon(message) {\n        // Em produção, usaria chrome.runtime.connectNative()\n        // Por ora, simular resposta\n        await this.delay(1000);\n        \n        return {\n            success: true,\n            signature: 'simulated-signature-' + Date.now(),\n            timestamp: new Date().toISOString()\n        };\n    }\n    \n    showCertificateInfo(certInfo) {\n        document.getElementById('certType').textContent = certInfo.type;\n        document.getElementById('certOwner').textContent = certInfo.owner;\n        document.getElementById('certExpiry').textContent = certInfo.expiry;\n        \n        document.getElementById('certificateSection').classList.remove('hidden');\n        document.getElementById('certStatus').className = 'status-indicator';\n    }\n    \n    enableAuthentication() {\n        const authBtn = document.getElementById('authenticateBtn');\n        const authBtnText = document.getElementById('authBtnText');\n        \n        authBtn.disabled = false;\n        authBtnText.textContent = 'Autenticar no Site';\n    }\n    \n    disableAuthentication() {\n        const authBtn = document.getElementById('authenticateBtn');\n        const authBtnText = document.getElementById('authBtnText');\n        \n        authBtn.disabled = true;\n        authBtnText.textContent = 'Aguardando site homologado...';\n        \n        // Ocultar seção de certificado\n        document.getElementById('certificateSection').classList.add('hidden');\n    }\n    \n    updateConnectionStatus(status, message) {\n        const indicator = document.getElementById('connectionStatus');\n        const info = document.getElementById('statusInfo');\n        \n        indicator.className = `status-indicator ${status === 'online' ? '' : status}`;\n        info.textContent = message;\n    }\n    \n    updateSiteStatus(status, message) {\n        const indicator = document.getElementById('siteStatus');\n        const info = document.getElementById('siteInfo');\n        \n        indicator.className = `status-indicator ${status === 'online' ? '' : status}`;\n        info.textContent = message;\n    }\n    \n    showLoginSection() {\n        document.getElementById('loginSection').classList.remove('hidden');\n        document.getElementById('loggedSection').classList.add('hidden');\n    }\n    \n    showLoggedSection() {\n        document.getElementById('loginSection').classList.add('hidden');\n        document.getElementById('loggedSection').classList.remove('hidden');\n    }\n    \n    openDashboard() {\n        chrome.tabs.create({ url: this.dashboardUrl });\n    }\n    \n    updateUI() {\n        // Atualizar informações do usuário se logado\n        if (this.userInfo) {\n            // Pode adicionar nome do usuário na interface se necessário\n        }\n    }\n    \n    generateJWT() {\n        // Em produção, o JWT viria do backend\n        // Aqui apenas simulamos um token\n        const header = btoa(JSON.stringify({ alg: 'HS256', typ: 'JWT' }));\n        const payload = btoa(JSON.stringify({\n            sub: 'user-001',\n            iat: Math.floor(Date.now() / 1000),\n            exp: Math.floor(Date.now() / 1000) + 3600 // 1 hora\n        }));\n        const signature = 'simulated-signature';\n        \n        return `${header}.${payload}.${signature}`;\n    }\n    \n    showError(message) {\n        // Simples notificação de erro\n        console.error('❌', message);\n        \n        // Em produção, poderia mostrar um toast ou modal\n        alert(message);\n    }\n    \n    delay(ms) {\n        return new Promise(resolve => setTimeout(resolve, ms));\n    }\n}\n\n// Inicializar quando o DOM estiver pronto\ndocument.addEventListener('DOMContentLoaded', () => {\n    new CertGuardPopup();\n});
 
